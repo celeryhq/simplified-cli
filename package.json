@@ -28,7 +28,8 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "figlet": "^1.11.0",
@@ -46,9 +47,9 @@
   "files": [
     "dist",
     "README.md",
-    "SKILL.md",
     "LICENSE"
   ],
+  "homepage": "https://simplified.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/celeryhq/simplified-cli.git"
