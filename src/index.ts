@@ -18,7 +18,7 @@ function printBanner() {
   nonEmpty.forEach((line, i) => {
     process.stdout.write(gradient(98, 48, 232, 168, 85, 247, nonEmpty.length, i) + line + reset + '\n');
   });
-  console.log(`\x1b[38;2;168;85;247m  Social media management from the command line${reset}\n`);
+  console.log(`\x1b[38;2;168;85;247m  Create, schedule, publish and analyze — all in one place${reset}\n`);
 }
 import { listAccounts } from './commands/accounts';
 import {
