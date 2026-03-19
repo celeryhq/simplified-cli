@@ -1,5 +1,25 @@
 import yargs, { Argv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import figlet from 'figlet';
+
+function gradient(r1: number, g1: number, b1: number, r2: number, g2: number, b2: number, steps: number, step: number) {
+  const t = steps <= 1 ? 0 : step / (steps - 1);
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `\x1b[38;2;${r};${g};${b}m`;
+}
+
+function printBanner() {
+  const lines = figlet.textSync('SIMPLIFIED', { font: 'ANSI Shadow' }).split('\n');
+  const nonEmpty = lines.filter(l => l.trim().length > 0);
+  const reset = '\x1b[0m';
+  // gradient: #6230E8 → #A855F7
+  nonEmpty.forEach((line, i) => {
+    process.stdout.write(gradient(98, 48, 232, 168, 85, 247, nonEmpty.length, i) + line + reset + '\n');
+  });
+  console.log(`\x1b[38;2;168;85;247m  Social media management from the command line${reset}\n`);
+}
 import { listAccounts } from './commands/accounts';
 import {
   createPost,
@@ -31,7 +51,12 @@ import {
   getTask,
 } from './commands/image';
 
-yargs(hideBin(process.argv))
+const argv = hideBin(process.argv);
+if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
+  printBanner();
+}
+
+yargs(argv)
   .scriptName('simplified')
   .usage('$0 <command> [options]')
 

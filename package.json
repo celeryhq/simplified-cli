@@ -31,10 +31,12 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "figlet": "^1.11.0",
     "node-fetch": "^2.7.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/figlet": "^1.7.0",
     "@types/node": "^20.0.0",
     "@types/node-fetch": "^2.6.0",
     "@types/yargs": "^17.0.0",
