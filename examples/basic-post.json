@@ -1,0 +1,5 @@
+{
+  "message": "Hello from simplified-cli! 🚀",
+  "account_ids": ["YOUR_ACCOUNT_ID"],
+  "action": "add_to_queue"
+}

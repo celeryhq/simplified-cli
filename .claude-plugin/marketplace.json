@@ -1,0 +1,38 @@
+{
+  "name": "simplified-cli",
+  "displayName": "Simplified Social Media CLI",
+  "tagline": "Schedule posts and pull analytics across 10 platforms from the command line",
+  "category": "social-media",
+  "tags": ["social-media", "scheduling", "analytics", "publishing", "cli"],
+  "platforms": [
+    "facebook",
+    "instagram",
+    "tiktok",
+    "tiktokBusiness",
+    "youtube",
+    "linkedin",
+    "pinterest",
+    "threads",
+    "google",
+    "bluesky"
+  ],
+  "features": [
+    "List connected social media accounts",
+    "Create, schedule, queue, or draft posts",
+    "Multi-platform posting in one command",
+    "Platform-specific settings (reels, stories, shorts, etc.)",
+    "Time-series analytics",
+    "Per-post performance metrics",
+    "Aggregated KPIs",
+    "Audience demographics"
+  ],
+  "setup": {
+    "envVars": [
+      {
+        "name": "SIMPLIFIED_API_KEY",
+        "description": "Your Simplified API key from Settings → API Keys",
+        "required": true
+      }
+    ]
+  }
+}

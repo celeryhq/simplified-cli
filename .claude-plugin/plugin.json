@@ -1,0 +1,33 @@
+{
+  "name": "simplified-cli",
+  "version": "1.0.0",
+  "description": "Social media scheduling, publishing, and analytics CLI for Simplified.com — post to and retrieve insights from Facebook, Instagram, TikTok, YouTube, LinkedIn, Pinterest, Threads, Google Business, and Bluesky.",
+  "author": {
+    "name": "Simplified",
+    "url": "https://simplified.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "social-media",
+    "scheduling",
+    "cli",
+    "simplified",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "youtube",
+    "linkedin",
+    "pinterest",
+    "threads",
+    "bluesky",
+    "google-business",
+    "analytics",
+    "automation"
+  ],
+  "skills": [
+    "skills/simplified-social/SKILL.md"
+  ],
+  "engines": {
+    "claude-code": ">=1.0.0"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "simplified-cli",
+  "version": "1.0.0",
+  "description": "Social media scheduling, publishing, and analytics CLI for Simplified.com",
+  "author": "Simplified",
+  "license": "MIT",
+  "keywords": [
+    "social-media",
+    "scheduling",
+    "cli",
+    "simplified",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "youtube",
+    "linkedin",
+    "pinterest",
+    "threads",
+    "bluesky",
+    "google-business"
+  ],
+  "bin": {
+    "simplified": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.0",
+    "@types/yargs": "^17.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SKILL.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/celeryhq/simplified-cli.git"
+  }
+}
