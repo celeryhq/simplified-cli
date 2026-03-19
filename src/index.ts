@@ -1,4 +1,4 @@
-import yargs from 'yargs';
+import yargs, { Argv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { listAccounts } from './commands/accounts';
 import {
@@ -39,7 +39,7 @@ yargs(hideBin(process.argv))
   .command(
     'accounts:list',
     'List connected social media accounts',
-    (y) =>
+    (y: Argv) =>
       y.option('network', {
         alias: 'n',
         type: 'string',
@@ -53,7 +53,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:create',
     'Create, schedule, queue or draft a social media post',
-    (y) =>
+    (y: Argv) =>
       y
         .option('content', {
           alias: 'c',
@@ -105,7 +105,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:list',
     'List scheduled/published posts for given accounts',
-    (y) =>
+    (y: Argv) =>
       y
         .option('accounts', {
           alias: 'a',
@@ -130,7 +130,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:list-drafts',
     'List drafts for given accounts',
-    (y) =>
+    (y: Argv) =>
       y
         .option('accounts', {
           alias: 'a',
@@ -160,7 +160,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:delete',
     'Delete a scheduled post by group ID or post-schedule ID',
-    (y) =>
+    (y: Argv) =>
       y
         .option('group-id', { type: 'string', description: 'Group ID of the post' })
         .option('post-schedule-id', { type: 'string', description: 'Post schedule ID' }),
@@ -171,7 +171,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:delete-draft',
     'Delete draft(s) by group ID or draft IDs',
-    (y) =>
+    (y: Argv) =>
       y
         .option('group-id', { type: 'string', description: 'Group ID of the drafts' })
         .option('draft-ids', {
@@ -185,7 +185,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:update',
     'Update a scheduled post',
-    (y) =>
+    (y: Argv) =>
       y
         .option('post-id', {
           type: 'string',
@@ -208,7 +208,7 @@ yargs(hideBin(process.argv))
   .command(
     'posts:update-draft',
     'Update a draft',
-    (y) =>
+    (y: Argv) =>
       y
         .option('draft-id', {
           type: 'string',
@@ -231,7 +231,7 @@ yargs(hideBin(process.argv))
   .command(
     'analytics:range',
     'Get time-series metrics for a social media account',
-    (y) =>
+    (y: Argv) =>
       y
         .option('account', {
           alias: 'a',
@@ -271,7 +271,7 @@ yargs(hideBin(process.argv))
   .command(
     'analytics:posts',
     'Get per-post analytics for a social media account',
-    (y) =>
+    (y: Argv) =>
       y
         .option('account', {
           alias: 'a',
@@ -306,7 +306,7 @@ yargs(hideBin(process.argv))
   .command(
     'analytics:aggregated',
     'Get aggregated KPIs (impressions, engagement, followers, publishing)',
-    (y) =>
+    (y: Argv) =>
       y
         .option('account', {
           alias: 'a',
@@ -331,7 +331,7 @@ yargs(hideBin(process.argv))
   .command(
     'analytics:audience',
     'Get audience demographics (followers, gender, country breakdown)',
-    (y) =>
+    (y: Argv) =>
       y
         .option('account', {
           alias: 'a',
@@ -360,7 +360,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:blur-background',
     'Blur the background of an image (synchronous)',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('blur', {
@@ -374,7 +374,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:remove-background',
     'Remove or replace the background of an image',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('magic-crop', { type: 'boolean', description: 'Auto-crop after removal' })
@@ -395,7 +395,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:convert',
     'Convert an image to a different format',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('format', {
@@ -414,7 +414,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:upscale',
     'Upscale image resolution (2x, 4x or 8x)',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('scale', {
@@ -433,7 +433,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:restore',
     'Restore and enhance a photo',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('scale', { type: 'number', description: 'Scale factor (default: 1)' })
@@ -448,7 +448,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:generative-fill',
     'AI-powered generative fill / inpainting with a prompt',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('prompt', { type: 'string', description: 'Fill instruction', demandOption: true })
@@ -466,7 +466,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:outpaint',
     'Extend image content beyond its borders',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('mask-url', {
@@ -496,7 +496,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:magic-inpaint',
     'Place an object or subject into a scene using AI',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('prompt', {
@@ -516,7 +516,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:pix-to-pix',
     'Transform an image using a text prompt',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('prompt', {
@@ -540,7 +540,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:replace',
     'Replace image background with transparent, a color, or another image',
-    (y) =>
+    (y: Argv) =>
       y
         .option('url', { type: 'string', description: 'Image URL', demandOption: true })
         .option('replace-type', {
@@ -568,7 +568,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:sd-scribble',
     'Generate image from a sketch/scribble using Stable Diffusion',
-    (y) =>
+    (y: Argv) =>
       y
         .option('prompt', {
           type: 'string',
@@ -596,7 +596,7 @@ yargs(hideBin(process.argv))
   .command(
     'image:task',
     'Check the status of an async image processing task',
-    (y) =>
+    (y: Argv) =>
       y.option('id', {
         type: 'string',
         description: 'Task ID returned by an async image command',
