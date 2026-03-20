@@ -20,7 +20,7 @@
     "google-business"
   ],
   "bin": {
-    "simplified": "./dist/index.js"
+    "simplified": "dist/index.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -52,6 +52,6 @@
   "homepage": "https://simplified.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/celeryhq/simplified-cli.git"
+    "url": "git+https://github.com/celeryhq/simplified-cli.git"
   }
 }
