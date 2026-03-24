@@ -11,7 +11,11 @@
   "plugins": [
     {
       "name": "simplified-cli",
-      "source": ".",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
       "description": "Publish to 10 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
       "version": "1.1.1",
       "author": {
