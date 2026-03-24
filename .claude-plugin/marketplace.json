@@ -10,8 +10,8 @@
   },
   "plugins": [
     {
-      "name": "simplified-social",
-      "source": "./skills/simplified-social",
+      "name": "simplified-cli",
+      "source": "./skills/simplified-cli",
       "description": "Publish to 10 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
       "version": "1.1.0",
       "author": {

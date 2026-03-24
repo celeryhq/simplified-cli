@@ -26,8 +26,8 @@ New command group for generating images using state-of-the-art AI models via the
 
 #### Documentation
 
-- Updated `skills/simplified-social/SKILL.md` with AI image agent patterns and critical rules
-- Added `skills/simplified-social/references/AI_IMAGE.md` — full command reference with examples
+- Updated `skills/simplified-cli/SKILL.md` with AI image agent patterns and critical rules
+- Added `skills/simplified-cli/references/AI_IMAGE.md` — full command reference with examples
 
 ---
 

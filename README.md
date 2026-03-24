@@ -83,7 +83,7 @@ simplified posts:create --json post.json
 
 **Actions:** `add_to_queue` · `schedule` (requires `--date "YYYY-MM-DD HH:MM"`) · `draft`
 
-**Platform-specific settings (`--additional`):** Pass a JSON string for per-platform options (Instagram `postType`/`channel`, TikTok `privacyStatus`, YouTube `post.title`, etc.). See [`skills/simplified-social/references/PLATFORM_GUIDE.md`](skills/simplified-social/references/PLATFORM_GUIDE.md) for all options.
+**Platform-specific settings (`--additional`):** Pass a JSON string for per-platform options (Instagram `postType`/`channel`, TikTok `privacyStatus`, YouTube `post.title`, etc.). See [`skills/simplified-cli/references/PLATFORM_GUIDE.md`](skills/simplified-cli/references/PLATFORM_GUIDE.md) for all options.
 
 ```bash
 # Instagram Reel
@@ -232,7 +232,7 @@ simplified ai-image:status --id "ART_VARIATION_ID"
 | TikTok Business | 2200 | Same as TikTok + `aiGenerated`, `uploadToDraft` |
 | YouTube | 2200 | Requires `postType` + `post.title` (mandatory) |
 
-Full `--additional` schemas: [`skills/simplified-social/references/PLATFORM_GUIDE.md`](skills/simplified-social/references/PLATFORM_GUIDE.md)
+Full `--additional` schemas: [`skills/simplified-cli/references/PLATFORM_GUIDE.md`](skills/simplified-cli/references/PLATFORM_GUIDE.md)
 
 ---
 
