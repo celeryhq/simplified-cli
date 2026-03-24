@@ -4,8 +4,16 @@ Social media automation CLI for [Simplified.com](https://simplified.com). Publis
 
 ## Installation
 
+### npm (global)
+
 ```bash
 npm install -g simplified-cli
+```
+
+### Claude Code plugin
+
+```
+/plugin marketplace add celeryhq/simplified-cli
 ```
 
 ## Setup
