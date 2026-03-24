@@ -1,3 +1,7 @@
+---
+description: Manage social media accounts, schedule posts, analyze performance, process images and videos, and generate AI images using the Simplified CLI
+---
+
 # simplified-cli Skill
 
 Command-line tool for Simplified.com — manage social media accounts, schedule posts, analyze performance, process images and videos with AI.
