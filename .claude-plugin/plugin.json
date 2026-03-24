@@ -27,9 +27,6 @@
     "analytics",
     "automation"
   ],
-  "skills": [
-    "skills/simplified-cli/SKILL.md"
-  ],
   "engines": {
     "claude-code": ">=1.0.0"
   }
