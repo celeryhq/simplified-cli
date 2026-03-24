@@ -14,6 +14,7 @@ npm install -g simplified-cli
 
 ```
 /plugin marketplace add celeryhq/simplified-cli
+/plugin install simplified-cli
 ```
 
 ## Setup
