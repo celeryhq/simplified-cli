@@ -1,5 +1,6 @@
 ---
-description: Manage social media accounts, schedule posts, analyze performance, process images and videos, and generate AI images using the Simplified CLI
+name: simplified-cli
+description: Manage social media accounts, schedule posts, analyze performance, process images and videos, and generate AI images using the Simplified CLI. Use when the user wants to publish to social media, analyze performance, process images, generate AI images, or work with video.
 ---
 
 # simplified-cli Skill
