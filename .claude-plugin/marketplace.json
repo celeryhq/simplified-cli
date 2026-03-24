@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "simplified-social",
-      "source": "https://github.com/celeryhq/simplified-cli",
+      "source": "./skills/simplified-social",
       "description": "Publish to 10 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
       "version": "1.1.0",
       "author": {
