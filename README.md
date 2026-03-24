@@ -1,6 +1,6 @@
 # simplified-cli
 
-Command-line tool for [Simplified.com](https://simplified.com) — manage social media accounts, schedule posts, analyze performance, and process images with AI.
+Social media automation CLI for [Simplified.com](https://simplified.com). Publish to 10 platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, making it ideal for scripts and AI agents.
 
 ## Installation
 
@@ -16,6 +16,21 @@ Get your API key from **Simplified.com → Settings → API Keys**, then export 
 export SIMPLIFIED_API_KEY=your_api_key_here
 ```
 
+## For AI Agents
+
+All commands print JSON to stdout. Errors go to stderr with a non-zero exit code.
+
+**Discovery workflow:**
+1. Run `accounts:list` to get account IDs — the `id` field is required by all other commands
+2. Filter by platform with `--network <platform>` if needed
+3. Use `posts:create`, `analytics:*`, or `image:*` with the discovered IDs
+
+**Async image workflow:**
+- Without `--wait`: returns `{"task_id":"..."}` immediately
+- With `--wait`: blocks until done (timeout: 120 s), prints final result JSON to stdout
+- Manual poll: `simplified image:task --id <task_id>`
+- Status values: `pending` → `completed` / `success` (result ready) or `failed`
+
 ## Commands
 
 ### Accounts
@@ -30,6 +45,8 @@ simplified accounts:list --network instagram
 
 **Supported platforms:** `facebook` · `instagram` · `linkedin` · `tiktok` · `tiktokBusiness` · `youtube` · `pinterest` · `threads` · `google` · `bluesky`
 
+**Response key fields:** `id` (use in `--accounts` / `-a`), `name`, `type` (platform name)
+
 ---
 
 ### Posts
@@ -38,8 +55,12 @@ simplified accounts:list --network instagram
 # Queue a post
 simplified posts:create -c "Hello world!" -a "ACCOUNT_ID" --action add_to_queue
 
+# Publish to multiple platforms simultaneously
+simplified posts:create -c "Launch day!" -a "INSTAGRAM_ID,LINKEDIN_ID,BLUESKY_ID" --action add_to_queue
+
 # Schedule a post
-simplified posts:create -c "Launching soon!" -a "ACCOUNT_ID" --action schedule --date "2026-04-01 09:00"
+simplified posts:create -c "Launching soon!" -a "ACCOUNT_ID" --action schedule \
+  --date "2026-04-01 09:00"  # format: YYYY-MM-DD HH:MM, timezone: UTC (override with --timezone)
 
 # Save as draft
 simplified posts:create -c "Work in progress" -a "ACCOUNT_ID" --action draft
@@ -53,6 +74,15 @@ simplified posts:create --json post.json
 ```
 
 **Actions:** `add_to_queue` · `schedule` (requires `--date "YYYY-MM-DD HH:MM"`) · `draft`
+
+**Platform-specific settings (`--additional`):** Pass a JSON string for per-platform options (Instagram `postType`/`channel`, TikTok `privacyStatus`, YouTube `post.title`, etc.). See [`skills/simplified-social/references/PLATFORM_GUIDE.md`](skills/simplified-social/references/PLATFORM_GUIDE.md) for all options.
+
+```bash
+# Instagram Reel
+simplified posts:create -c "New reel!" -a "ACCOUNT_ID" --action add_to_queue \
+  --media "https://example.com/video.mp4" \
+  --additional '{"instagram":{"postType":{"value":"reel"},"channel":{"value":"direct"}}}'
+```
 
 #### Manage scheduled posts
 
@@ -89,6 +119,8 @@ simplified posts:delete-draft --group-id "GROUP_ID"
 
 ### Analytics
 
+> `--to` must be today or earlier — analytics only covers historical data. Date format: `YYYY-MM-DD`.
+
 ```bash
 # Aggregated KPIs (impressions, engagement, followers, publishing)
 simplified analytics:aggregated -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
@@ -105,13 +137,13 @@ simplified analytics:posts -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 simplified analytics:audience -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 ```
 
-> **Note:** `--to` must never be a future date — analytics only covers past data.
-
 ---
 
 ### Image Tools
 
-All image commands accept `--url` with a public image URL. Async commands return a `task_id` — use `--wait` to block until the result is ready.
+All image commands accept `--url` with a public image URL. Async commands return a `task_id` — use `--wait` to block until the result is ready (see [For AI Agents](#for-ai-agents) for async workflow details).
+
+`image:blur-background` is synchronous — returns `{"image_url": "..."}` directly.
 
 ```bash
 # Remove background (async)
@@ -139,25 +171,80 @@ simplified image:task --id "TASK_ID"
 
 ---
 
+### AI Image Generation
+
+Generate images from text prompts or reference images using 20+ AI models (Flux, Google Imagen, OpenAI, Recraft, Ideogram, Stability, Qwen, ByteDance).
+
+```bash
+# Discover available models
+simplified ai-image:models
+simplified ai-image:models --capability prompt
+
+# Generate from text prompt (wait for result)
+simplified ai-image:generate \
+  --model flux.flux-realism \
+  --prompt "A stunning sunset over mountains, photorealistic, 8k" \
+  --aspect-ratio 16:9 \
+  --count 2 \
+  --wait
+
+# Style transfer from a reference image
+simplified ai-image:generate \
+  --model flux.flux-kontext-pro \
+  --capability reference_image \
+  --prompt "Transform to watercolor painting style" \
+  --reference-images "ASSET_UUID" \
+  --wait
+
+# Check generation status manually
+simplified ai-image:status --id "ART_VARIATION_ID"
+```
+
+**Async workflow:**
+- Without `--wait`: returns `{ task_id, id, art_variation_id }` immediately
+- With `--wait`: polls every 3s (timeout: 180s), prints `[{ asset_id, url }]` on completion
+- Manual poll: `simplified ai-image:status --id <art_variation_id>`
+
+**Available models:** `flux.flux-realism` · `flux.flux-kontext-pro` · `flux.flux-schnell` · `google.imagen-4.0-generate-001` · `openai.imgen` · `openai.imgen-1.5` · `stability.diffusion` · `recraft.recraft` · `ideogram.ideogram-v3-turbo` · and more — run `ai-image:models` for the full list.
+
+---
+
+## Platform Notes
+
+| Platform | Char limit | Key requirement |
+|---|---|---|
+| Bluesky | 300 | No `additional` required |
+| Threads | 500 | Optional `channel` (direct / reminder) |
+| Pinterest | 500 | Always requires ≥ 1 image in `--media` |
+| Google Business | 1500 | No video support |
+| LinkedIn | 3000 | Set `audience` (PUBLIC / CONNECTIONS / LOGGED_IN) |
+| Instagram | 2200 | Requires `postType` + `channel`; stories: empty caption + 1 photo |
+| Facebook | 2200 | Optional `postType` (post / reel / story) |
+| TikTok | 2200 | Requires `postType` + `channel` + `post.privacyStatus` |
+| TikTok Business | 2200 | Same as TikTok + `aiGenerated`, `uploadToDraft` |
+| YouTube | 2200 | Requires `postType` + `post.title` (mandatory) |
+
+Full `--additional` schemas: [`skills/simplified-social/references/PLATFORM_GUIDE.md`](skills/simplified-social/references/PLATFORM_GUIDE.md)
+
+---
+
 ## Common workflows
 
 ### Publish content to social media
 
 ```bash
-# 1. Find your account IDs
-simplified accounts:list
-
-# 2. Publish
-simplified posts:create -c "Your content" -a "ACCOUNT_ID" --action add_to_queue
+# Workflow 1: Multi-platform publish
+simplified accounts:list --network instagram   # note the "id" field
+simplified posts:create -c "Your content" -a "INSTA_ID,LINKEDIN_ID" --action add_to_queue
 ```
 
 ### Process an image and post it
 
 ```bash
-# 1. Remove background and wait for result
-simplified image:remove-background --url "https://example.com/photo.jpg" --wait
+# Workflow 2: Image pipeline (--wait output is pipeable)
+simplified image:remove-background --url "https://example.com/photo.jpg" --wait | jq '.url'
 
-# 2. Post with the returned URL
+# Post with the returned URL
 simplified posts:create -c "Caption" -a "ACCOUNT_ID" --action add_to_queue \
   --media "RESULT_URL"
 ```

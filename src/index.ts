@@ -40,7 +40,54 @@ import {
   restoreImage,
   sdScribble,
   getTask,
+  generateAiImage,
+  getAiImageStatus,
+  listAiImageModels,
 } from './commands/image';
+import {
+  addBRolls,
+  convertVideoFormat,
+  mergeVideos,
+  removeAudio,
+  reverseVideo,
+  scriptToVideo,
+  textToVideo,
+  speedupVideo,
+  getVideoTask,
+} from './commands/video';
+import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS } from './api';
+
+const videoGenerationOptions = (y: Argv) =>
+  y
+    .option('title', { type: 'string', description: 'Video title', demandOption: true })
+    .option('description', { type: 'string', description: 'Video description' })
+    .option('keywords', { type: 'string', description: 'Keywords for content generation' })
+    .option('tone', {
+      type: 'string',
+      choices: VIDEO_TONES,
+      description: 'Video tone',
+    })
+    .option('creativity-level', { type: 'number', description: 'Creativity level' })
+    .option('language-code', { type: 'string', description: 'Language code (e.g. en)' })
+    .option('voice-id', { type: 'string', description: 'Voice ID for narration' })
+    .option('format', {
+      type: 'string',
+      choices: VIDEO_FORMATS,
+      description: 'Video format',
+    })
+    .option('no-runs', { type: 'number', description: 'Number of runs' })
+    .option('logo-id', { type: 'string', description: 'Logo ID' })
+    .option('caption-style-id', { type: 'string', description: 'Caption style ID' })
+    .option('should-export', {
+      type: 'boolean',
+      default: true,
+      description: 'Export after generation',
+    })
+    .option('wait', {
+      type: 'boolean',
+      default: false,
+      description: 'Poll until task completes (including export) and print result',
+    });
 
 const argv = hideBin(process.argv);
 if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
@@ -619,6 +666,218 @@ yargs(argv)
         demandOption: true,
       }),
     getTask
+  )
+
+  // ── AI Image Generation ───────────────────────────────────────────────────
+  .command(
+    'ai-image:generate',
+    'Generate an image using AI from a text prompt or reference image',
+    (y: Argv) =>
+      y
+        .option('model', {
+          type: 'string',
+          description: 'Model ID (e.g. flux.flux-realism, google.imagen-4.0-generate-001, openai.imgen)',
+          demandOption: true,
+        })
+        .option('capability', {
+          type: 'string',
+          choices: ['prompt', 'reference_image', 'multiple_images'],
+          description: 'Generation mode',
+          default: 'prompt',
+        })
+        .option('prompt', {
+          type: 'string',
+          description: 'Text description of the image to generate',
+          demandOption: true,
+        })
+        .option('aspect-ratio', {
+          type: 'string',
+          description: 'Aspect ratio (e.g. 1:1, 16:9, 9:16)',
+        })
+        .option('count', {
+          type: 'number',
+          description: 'Number of images to generate (1-4, default: 1)',
+        })
+        .option('negative-prompt', {
+          type: 'string',
+          description: 'What NOT to include in the image',
+        })
+        .option('reference-images', {
+          type: 'string',
+          description: 'Comma-separated asset UUIDs (required for reference_image / multiple_images)',
+        })
+        .option('seed', {
+          type: 'number',
+          description: 'Random seed for reproducible results',
+        })
+        .option('properties', {
+          type: 'string',
+          description: 'Comma-separated style slugs (e.g. cinematic,photography)',
+        })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until generation completes and print image URLs',
+        })
+        .example(
+          '$0 ai-image:generate --model flux.flux-realism --prompt "sunset over mountains" --aspect-ratio 16:9 --wait',
+          'Text to image'
+        )
+        .example(
+          '$0 ai-image:generate --model flux.flux-kontext-pro --capability reference_image --prompt "watercolor style" --reference-images "uuid-here" --wait',
+          'Style transfer from reference image'
+        ),
+    generateAiImage
+  )
+
+  .command(
+    'ai-image:status',
+    'Check the status of an AI image generation task',
+    (y: Argv) =>
+      y.option('id', {
+        type: 'string',
+        description: 'art_variation_id returned by ai-image:generate',
+        demandOption: true,
+      }),
+    getAiImageStatus
+  )
+
+  .command(
+    'ai-image:models',
+    'List available AI image generation models with capabilities and pricing',
+    (y: Argv) =>
+      y
+        .option('model-id', {
+          type: 'string',
+          description: 'Filter by model ID (e.g. flux.flux-realism)',
+        })
+        .option('capability', {
+          type: 'string',
+          choices: ['prompt', 'reference_image', 'multiple_images'] as const,
+          description: 'Filter by capability',
+        })
+        .example('$0 ai-image:models', 'List all models')
+        .example('$0 ai-image:models --capability prompt', 'Only text-to-image models')
+        .example('$0 ai-image:models --model-id flux.flux-realism --capability prompt', 'Full field definitions'),
+    listAiImageModels
+  )
+
+  // ── Video Tools ──────────────────────────────────────────────────────────
+  .command(
+    'video:add-b-rolls',
+    'Add B-rolls to a video',
+    (y: Argv) =>
+      y
+        .option('title', { type: 'string', description: 'Video title', demandOption: true })
+        .option('media-url', { type: 'string', description: 'Media URL' })
+        .option('asset', { type: 'string', description: 'Asset identifier' })
+        .option('language-code', { type: 'string', description: 'Language code (e.g. en)' })
+        .option('should-export', { type: 'boolean', description: 'Export after processing' })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    addBRolls
+  )
+
+  .command(
+    'video:convert',
+    'Convert a video to a different format',
+    (y: Argv) =>
+      y
+        .option('url', { type: 'string', description: 'Video URL', demandOption: true })
+        .option('format', {
+          type: 'string',
+          choices: VIDEO_OUTPUT_FORMATS,
+          description: 'Output format (default: mp4)',
+        })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    convertVideoFormat
+  )
+
+  .command(
+    'video:merge',
+    'Merge multiple videos into one',
+    (y: Argv) =>
+      y
+        .option('urls', {
+          type: 'string',
+          description: 'Comma-separated video URLs (min 2)',
+          demandOption: true,
+        })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    mergeVideos
+  )
+
+  .command(
+    'video:remove-audio',
+    'Remove audio track from a video',
+    (y: Argv) =>
+      y
+        .option('url', { type: 'string', description: 'Video URL', demandOption: true })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    removeAudio
+  )
+
+  .command(
+    'video:reverse',
+    'Reverse a video',
+    (y: Argv) =>
+      y
+        .option('url', { type: 'string', description: 'Video URL', demandOption: true })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    reverseVideo
+  )
+
+  .command('video:script-to-video', 'Generate a video from a script using AI', videoGenerationOptions, scriptToVideo)
+  .command('video:text-to-video', 'Generate a video from text using AI', videoGenerationOptions, textToVideo)
+
+  .command(
+    'video:speedup',
+    'Speed up or slow down a video',
+    (y: Argv) =>
+      y
+        .option('url', { type: 'string', description: 'Video URL', demandOption: true })
+        .option('playbackrate', {
+          type: 'number',
+          description: 'Playback rate (min 0.5)',
+          demandOption: true,
+        })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until task completes and print result',
+        }),
+    speedupVideo
+  )
+
+  .command(
+    'video:task',
+    'Check the status of an async video processing task',
+    (y: Argv) =>
+      y.option('id', {
+        type: 'string',
+        description: 'Task ID returned by a video command',
+        demandOption: true,
+      }),
+    getVideoTask
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')

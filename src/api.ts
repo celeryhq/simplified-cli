@@ -22,6 +22,45 @@ export type ImageOutputFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'jpg';
 export type ReplaceType = 'transparent' | 'image' | 'color';
 export type PrivacyStatus = 'PUBLIC_TO_EVERYONE' | 'MUTUAL_FOLLOW_FRIENDS' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY';
 
+export const VIDEO_OUTPUT_FORMATS = [
+  'mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'mpeg',
+  'mpg', '3gp', 'ogv', 'ts', 'vob', 'm4v', 'f4v', 'rm',
+  'divx', 'asf',
+] as const;
+export type VideoOutputFormat = (typeof VIDEO_OUTPUT_FORMATS)[number];
+
+export const VIDEO_TONES = [
+  'professional', 'casual', 'humorous', 'inspirational', 'educational',
+  'dramatic', 'energetic', 'calm', 'friendly', 'authoritative',
+  'storytelling', 'persuasive',
+] as const;
+export type VideoTone = (typeof VIDEO_TONES)[number];
+
+export const VIDEO_FORMATS = ['youtube-shorts', 'youtube-video', 'instagram-post-video', 'mp4'] as const;
+export type VideoFormat = (typeof VIDEO_FORMATS)[number];
+
+export interface TaskProgressResponse {
+  status: string;
+  info?: unknown;
+}
+
+export interface ScriptToVideoPayload {
+  payload: {
+    title: string;
+    description?: string;
+    keywords?: string;
+    tone?: VideoTone;
+    creativity_level?: number;
+    language_code?: string;
+    voice_id?: string;
+    format?: VideoFormat;
+    no_runs?: number;
+    logo_id?: string;
+    caption_style_id?: string;
+  };
+  should_export?: boolean;
+}
+
 export interface TaskResponse {
   task_id: string;
 }
@@ -201,11 +240,21 @@ export class SimplifiedAPI {
     );
   }
 
-  // ── Image Tools ─────────────────────────────────────────────────────────
+  // ── Tasks ───────────────────────────────────────────────────────────────
 
   async getTask(taskId: string) {
     return this.request<TaskStatusResponse>('GET', `/api/v1/service/tasks/${taskId}`);
   }
+
+  async getTaskProgress(taskId: string) {
+    return this.request<TaskProgressResponse>('GET', `/api/v1/service/tasks/progress/${taskId}`);
+  }
+
+  async getExportStatus(exportId: string) {
+    return this.request<unknown>('GET', `/api/v1/service/export-lib/${exportId}`);
+  }
+
+  // ── Image Tools ─────────────────────────────────────────────────────────
 
   async blurBackground(params: { image_url: string; blur_value: number }) {
     return this.request<{ image_url: string; error?: string }>(
@@ -291,5 +340,86 @@ export class SimplifiedAPI {
     counts?: number;
   }) {
     return this.request<TaskResponse>('POST', '/api/v1/service/image-tools/sd-scrible', params);
+  }
+
+  // ── Video Tools ────────────────────────────────────────────────────────
+
+  async addBRollsVideo(params: {
+    title: string;
+    media_url?: string;
+    asset?: string;
+    language_code?: string;
+    should_export?: boolean;
+  }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/add-b-rolls-video', params);
+  }
+
+  async convertVideoFormat(params: { video_url: string; output_format?: VideoOutputFormat }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/convert-video-format', params);
+  }
+
+  async mergeVideos(params: { video_urls: string[] }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/merge-videos', params);
+  }
+
+  async removeAudio(params: { video_url: string }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/remove-audio', params);
+  }
+
+  async reverseVideo(params: { video_url: string }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/reverse-video', params);
+  }
+
+  async scriptToVideo(params: ScriptToVideoPayload) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/script-to-video', params);
+  }
+
+  async textToVideo(params: ScriptToVideoPayload) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/text-to-video', params);
+  }
+
+  async speedupVideo(params: { video_url: string; playback_rate: number }) {
+    return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/speedup-video', params);
+  }
+
+  // ── AI Image Generation ──────────────────────────────────────────────────
+
+  async generateAiImage(params: {
+    model: string;
+    capability: 'prompt' | 'reference_image' | 'multiple_images';
+    parameters: {
+      prompt: string;
+      aspect_ratio?: string;
+      count?: number;
+      negative_prompt?: string;
+      reference_images?: string[];
+      seed?: number;
+    };
+    properties?: string[];
+  }) {
+    return this.request<{ task_id: string; id: string; art_variation_id: string }>(
+      'POST',
+      '/api/v1/service/ai-image/generate',
+      params
+    );
+  }
+
+  async getAiImageStatus(artVariationId: string) {
+    return this.request<{
+      id: string;
+      job_status: 'CREATED' | 'PENDING' | 'PROCESSING' | 'RENDERING' | 'DONE' | 'FAILED';
+      modified: string;
+      images?: { asset_id: string; url: string }[];
+      errors?: { detail?: { message: string; code: string } };
+    }>('GET', `/api/v1/service/ai-image/status/${artVariationId}`);
+  }
+
+  async listAiImageModels(params?: { model_id?: string; capability?: string }) {
+    return this.request<unknown>(
+      'GET',
+      '/api/v1/service/ai-image/models',
+      undefined,
+      params as Record<string, string | undefined>
+    );
   }
 }

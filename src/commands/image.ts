@@ -1,48 +1,6 @@
 import { getConfig } from '../config';
 import { SimplifiedAPI } from '../api';
-
-const POLL_INTERVAL_MS = 2000;
-const POLL_TIMEOUT_MS = 120_000;
-
-async function pollTask(api: SimplifiedAPI, taskId: string): Promise<unknown> {
-  const start = Date.now();
-  process.stderr.write(`⏳ Task ${taskId} — waiting for completion`);
-
-  while (Date.now() - start < POLL_TIMEOUT_MS) {
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    process.stderr.write('.');
-
-    const status = await api.getTask(taskId);
-
-    if (status.status === 'completed' || status.status === 'success' || status.result) {
-      process.stderr.write(' ✅\n');
-      return status.result ?? status;
-    }
-
-    if (status.status === 'failed' || status.error) {
-      process.stderr.write(' ❌\n');
-      throw new Error(`Task failed: ${status.error ?? status.status}`);
-    }
-  }
-
-  process.stderr.write(' ⌛ timed out\n');
-  throw new Error(`Task timed out after ${POLL_TIMEOUT_MS / 1000}s`);
-}
-
-async function submitAndMaybeWait(
-  api: SimplifiedAPI,
-  action: () => Promise<{ task_id: string }>,
-  wait: boolean
-) {
-  const result = await action();
-  if (!wait) {
-    console.log(JSON.stringify(result, null, 2));
-    console.error(`\n💡 To check status: simplified image:task --id ${result.task_id}`);
-    return;
-  }
-  const final = await pollTask(api, result.task_id);
-  console.log(JSON.stringify(final, null, 2));
-}
+import { submitAndMaybeWait, pollAiImageStatus } from '../polling';
 
 // ── Commands ─────────────────────────────────────────────────────────────────
 
@@ -71,7 +29,8 @@ export async function convertImageFormat(args: {
     await submitAndMaybeWait(
       api,
       () => api.convertImageFormat({ image_url: args.url, output_format: args.format as any }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -99,7 +58,8 @@ export async function generativeFill(args: {
           negative_prompt: args['negative-prompt'],
           count: args.count,
         }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -129,7 +89,8 @@ export async function imageOutpainting(args: {
           guidance_scale: args['guidance-scale'],
           count: args.count,
         }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -147,7 +108,8 @@ export async function upscaleImage(args: {
     await submitAndMaybeWait(
       api,
       () => api.upscaleImage({ image_url: args.url, scale: args.scale as any }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -166,7 +128,8 @@ export async function magicInpaint(args: {
     await submitAndMaybeWait(
       api,
       () => api.magicInpaint({ image_url: args.url, prompt: args.prompt, scale: args.scale }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -192,7 +155,8 @@ export async function pixToPix(args: {
           image_guidance_scale: args['guidance-scale'],
           counts: args.count,
         }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -218,7 +182,8 @@ export async function removeBackground(args: {
           background_color: args['bg-color'],
           output_format: args.format as any,
         }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -244,7 +209,8 @@ export async function replaceImage(args: {
           replace_color: args['replace-color'],
           replace_image: args['replace-image'],
         }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -262,7 +228,8 @@ export async function restoreImage(args: {
     await submitAndMaybeWait(
       api,
       () => api.restoreImage({ image_url: args.url, scale: args.scale }),
-      args.wait
+      args.wait,
+      'image'
     );
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
@@ -294,8 +261,83 @@ export async function sdScribble(args: {
           guidance_scale: args['guidance-scale'],
           counts: args.count,
         }),
-      args.wait
+      args.wait,
+      'image'
     );
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : e}`);
+    process.exit(1);
+  }
+}
+
+export async function generateAiImage(args: {
+  model: string;
+  capability: string;
+  prompt: string;
+  'aspect-ratio'?: string;
+  count?: number;
+  'negative-prompt'?: string;
+  'reference-images'?: string;
+  seed?: number;
+  properties?: string;
+  wait: boolean;
+}) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    const referenceImages = args['reference-images']
+      ? args['reference-images'].split(',').map((s) => s.trim())
+      : undefined;
+    const properties = args.properties
+      ? args.properties.split(',').map((s) => s.trim())
+      : undefined;
+
+    const result = await api.generateAiImage({
+      model: args.model,
+      capability: args.capability as 'prompt' | 'reference_image' | 'multiple_images',
+      parameters: {
+        prompt: args.prompt,
+        aspect_ratio: args['aspect-ratio'],
+        count: args.count,
+        negative_prompt: args['negative-prompt'],
+        reference_images: referenceImages,
+        seed: args.seed,
+      },
+      properties,
+    });
+
+    if (!args.wait) {
+      console.log(JSON.stringify(result, null, 2));
+      console.error(`\n💡 To check status: simplified ai-image:status --id ${result.art_variation_id}`);
+      return;
+    }
+
+    const images = await pollAiImageStatus(api, result.art_variation_id);
+    console.log(JSON.stringify(images, null, 2));
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : e}`);
+    process.exit(1);
+  }
+}
+
+export async function getAiImageStatus(args: { id: string }) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    const result = await api.getAiImageStatus(args.id);
+    console.log(JSON.stringify(result, null, 2));
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : e}`);
+    process.exit(1);
+  }
+}
+
+export async function listAiImageModels(args: { 'model-id'?: string; capability?: string }) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    const result = await api.listAiImageModels({
+      model_id: args['model-id'],
+      capability: args.capability,
+    });
+    console.log(JSON.stringify(result, null, 2));
   } catch (e: unknown) {
     console.error(`❌ ${e instanceof Error ? e.message : e}`);
     process.exit(1);
