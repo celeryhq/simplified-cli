@@ -1,9 +1,9 @@
 {
   "name": "simplified-cli",
   "displayName": "Simplified Social Media CLI",
-  "tagline": "Schedule posts and pull analytics across 10 platforms from the command line",
+  "tagline": "Publish to 10 platforms, generate AI images and videos — all from the command line",
   "category": "social-media",
-  "tags": ["social-media", "scheduling", "analytics", "publishing", "cli"],
+  "tags": ["social-media", "scheduling", "analytics", "publishing", "cli", "ai-image", "video"],
   "platforms": [
     "facebook",
     "instagram",
@@ -24,7 +24,11 @@
     "Time-series analytics",
     "Per-post performance metrics",
     "Aggregated KPIs",
-    "Audience demographics"
+    "Audience demographics",
+    "AI image generation (20+ models: Flux, Google Imagen, OpenAI, Recraft, Ideogram)",
+    "Image processing (remove background, upscale, generative fill, inpaint, outpaint)",
+    "Video processing (convert, merge, speedup, reverse, remove audio)",
+    "AI video generation from script or text prompt"
   ],
   "setup": {
     "envVars": [

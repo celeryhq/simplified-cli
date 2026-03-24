@@ -1,7 +1,7 @@
 {
   "name": "simplified-cli",
-  "version": "1.0.0",
-  "description": "Social media scheduling, publishing, and analytics CLI for Simplified.com — post to and retrieve insights from Facebook, Instagram, TikTok, YouTube, LinkedIn, Pinterest, Threads, Google Business, and Bluesky.",
+  "version": "1.1.0",
+  "description": "Social media automation CLI for Simplified.com — publish to 10 platforms simultaneously, analyze performance, process images and videos, and generate AI images from the command line.",
   "author": {
     "name": "Simplified",
     "url": "https://simplified.com"
@@ -12,6 +12,9 @@
     "scheduling",
     "cli",
     "simplified",
+    "ai-image",
+    "image-generation",
+    "video",
     "facebook",
     "instagram",
     "tiktok",
