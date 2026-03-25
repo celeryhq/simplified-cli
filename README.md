@@ -1,6 +1,34 @@
-# simplified-cli
+# Simplified CLI — Social Media Automation for AI Agents
 
-Social media automation CLI for [Simplified.com](https://simplified.com). Publish to 10 platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, making it ideal for scripts and AI agents.
+![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-10-blue)
+
+Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 10 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
+
+## What is Simplified CLI?
+
+Simplified CLI is an open-source social media automation tool that lets AI agents and developers schedule posts, pull analytics, and generate AI images across 10 platforms (Instagram, TikTok, LinkedIn, YouTube, and more) — entirely from the command line.
+
+## Why Simplified CLI?
+
+| Feature | Simplified CLI | Buffer API | Hootsuite API |
+|---|---|---|---|
+| AI image generation | ✅ 20+ models | ❌ | ❌ |
+| Agentic / LLM-ready (JSON output) | ✅ | ⚠️ partial | ⚠️ partial |
+| Video tools | ✅ | ❌ | ❌ |
+| Platforms | 10 | 6 | 10 |
+| Open source CLI | ✅ | ❌ | ❌ |
+| Claude Code plugin | ✅ | ❌ | ❌ |
+
+Simplified CLI is the only social media scheduling tool built natively for agentic AI workflows — with JSON output, async task polling, and AI image generation built in.
+
+## Use Cases
+
+- **AI agents & LLM pipelines** — autonomous social media posting driven by Claude, GPT, or any LLM via tool use
+- **Marketing automation** — bulk scheduling, cross-platform posting, and performance analytics from CI/CD or cron
+- **Content teams** — generate AI images, remove backgrounds, and publish in a single pipeline
+- **Developers** — scriptable social media API for custom automation workflows
+- **Claude Code users** — install as a plugin and manage social media directly from your AI coding assistant
+- **OpenClaw users** — run Simplified CLI commands directly from your open-source AI agent via shell tool use
 
 ## Installation
 
@@ -25,11 +53,11 @@ Get your API key from **Simplified.com → Settings → API Keys**, then export 
 export SIMPLIFIED_API_KEY=your_api_key_here
 ```
 
-## For AI Agents
+## Agentic Workflows & LLM Integration
 
-All commands print JSON to stdout. Errors go to stderr with a non-zero exit code.
+All commands print JSON to stdout. Errors go to stderr with a non-zero exit code — making Simplified CLI a reliable tool for agentic pipelines, LLM tool use, and autonomous social media workflows.
 
-**Discovery workflow:**
+**Discovery workflow for AI agents:**
 1. Run `accounts:list` to get account IDs — the `id` field is required by all other commands
 2. Filter by platform with `--network <platform>` if needed
 3. Use `posts:create`, `analytics:*`, or `image:*` with the discovered IDs
@@ -58,7 +86,7 @@ simplified accounts:list --network instagram
 
 ---
 
-### Posts
+### Social Media Scheduling
 
 ```bash
 # Queue a post
@@ -126,7 +154,7 @@ simplified posts:delete-draft --group-id "GROUP_ID"
 
 ---
 
-### Analytics
+### Social Media Analytics & Performance Tracking
 
 > `--to` must be today or earlier — analytics only covers historical data. Date format: `YYYY-MM-DD`.
 
@@ -148,9 +176,9 @@ simplified analytics:audience -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 
 ---
 
-### Image Tools
+### AI-Powered Image Processing
 
-All image commands accept `--url` with a public image URL. Async commands return a `task_id` — use `--wait` to block until the result is ready (see [For AI Agents](#for-ai-agents) for async workflow details).
+All image commands accept `--url` with a public image URL. Async commands return a `task_id` — use `--wait` to block until the result is ready (see [Agentic Workflows](#agentic-workflows--llm-integration) for async workflow details).
 
 `image:blur-background` is synchronous — returns `{"image_url": "..."}` directly.
 
@@ -182,7 +210,7 @@ simplified image:task --id "TASK_ID"
 
 ### AI Image Generation
 
-Generate images from text prompts or reference images using 20+ AI models (Flux, Google Imagen, OpenAI, Recraft, Ideogram, Stability, Qwen, ByteDance).
+Generate images from text prompts or reference images using 20+ AI models (Flux, Google Imagen, OpenAI, Recraft, Ideogram, Stability, Qwen, ByteDance). Ideal for agentic content pipelines that need programmatic image creation.
 
 ```bash
 # Discover available models
@@ -237,12 +265,12 @@ Full `--additional` schemas: [`skills/simplified-cli/references/PLATFORM_GUIDE.m
 
 ---
 
-## Common workflows
+## Common Agentic Workflows
 
 ### Publish content to social media
 
 ```bash
-# Workflow 1: Multi-platform publish
+# Workflow 1: Multi-platform social media scheduling
 simplified accounts:list --network instagram   # note the "id" field
 simplified posts:create -c "Your content" -a "INSTA_ID,LINKEDIN_ID" --action add_to_queue
 ```
@@ -250,7 +278,7 @@ simplified posts:create -c "Your content" -a "INSTA_ID,LINKEDIN_ID" --action add
 ### Process an image and post it
 
 ```bash
-# Workflow 2: Image pipeline (--wait output is pipeable)
+# Workflow 2: Agentic image pipeline (--wait output is pipeable)
 simplified image:remove-background --url "https://example.com/photo.jpg" --wait | jq '.url'
 
 # Post with the returned URL
@@ -267,6 +295,29 @@ simplified analytics:audience   -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 ```
 
 ---
+
+## FAQ
+
+**What is Simplified CLI used for?**
+Simplified CLI is a command-line tool for social media automation — scheduling posts, pulling analytics, processing images, and generating AI images across 10 platforms including Instagram, TikTok, LinkedIn, YouTube, and Bluesky.
+
+**Is Simplified CLI suitable for AI agents?**
+Yes. All commands output JSON to stdout and return non-zero exit codes on failure, making it fully compatible with LLM tool use, agentic pipelines, and automation scripts.
+
+**Which social media platforms are supported?**
+Facebook, Instagram, LinkedIn, TikTok, TikTok Business, YouTube, Pinterest, Threads, Google Business, and Bluesky.
+
+**Does it support AI image generation?**
+Yes. The `ai-image:generate` command supports 20+ models including Flux, Google Imagen 4, OpenAI, Recraft, Ideogram, and Stability Diffusion.
+
+**How is Simplified CLI different from Buffer or Hootsuite?**
+Simplified CLI is developer-first and agentic-ready — JSON output, async task polling, AI image generation, and video tools are built in. It's designed to be used programmatically by scripts, CI/CD pipelines, and AI agents.
+
+**Can I use it with Claude Code?**
+Yes. Install it as a Claude Code plugin with `/plugin marketplace add celeryhq/simplified-cli` and manage social media directly from your AI coding assistant.
+
+**Can I use it with OpenClaw?**
+Yes. Since Simplified CLI is a standard shell tool with JSON output, any AI agent that can run shell commands — including [OpenClaw](https://openclaw.ai) — can use it directly. Just install globally with `npm install -g simplified-cli` and let your agent call `simplified` commands.
 
 ## Help
 
