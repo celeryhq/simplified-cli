@@ -378,7 +378,7 @@ export class SimplifiedAPI {
     return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/text-to-video', params);
   }
 
-  async speedupVideo(params: { video_url: string; playback_rate: number }) {
+  async speedupVideo(params: { video_url: string; playbackrate: number }) {
     return this.request<TaskResponse>('POST', '/api/v1/service/video-tools/speedup-video', params);
   }
 

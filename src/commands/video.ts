@@ -201,7 +201,7 @@ export async function speedupVideo(args: {
       () =>
         api.speedupVideo({
           video_url: args.url,
-          playback_rate: args.playbackrate,
+          playbackrate: args.playbackrate,
         }),
       args.wait,
       'video',
