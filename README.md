@@ -2,7 +2,7 @@
 
 ![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-10-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
 
-[![Featured on Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=327271&theme=light)](https://www.producthunt.com/products/simplified-design/launches/simplified-design?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-simplified-design)
+[![Featured on Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=327271&theme=light)](https://www.producthunt.com/products/simplified-design?launch=simplified-cli&embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-simplified-design)
 
 Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 10 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
 
