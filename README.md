@@ -247,6 +247,31 @@ simplified ai-image:status --id "ART_VARIATION_ID"
 
 ---
 
+### Asset Management
+
+Upload local files or import remote URLs as persistent workspace assets. Useful for feeding images and videos into posts, AI workflows, or project items.
+
+```bash
+# Import a remote image (S3, GCP, CDN, Unsplash, etc.)
+simplified assets:import --url "https://cdn.example.com/photo.jpg"
+simplified assets:import --url "https://cdn.example.com/photo.jpg" --name "Campaign Hero"
+
+# Upload a local file
+simplified assets:upload --file ./photo.png
+simplified assets:upload --file ./video.mp4 --name "Promo Video"
+
+# Check asset status / get final stored URL
+simplified assets:get --id "ASSET_UUID"
+```
+
+**Supported file types for upload:** PNG · JPG · GIF · WebP · BMP · TIFF · MP4 · MOV · AVI · MKV · WebM · MP3 · WAV · PDF
+
+**Asset types:** `0` = image · `2` = video · `8` = audio · `17` = PDF
+
+**Async processing:** `assets:import` and `assets:upload` return immediately with the asset `id`. The file is processed asynchronously — use `assets:get --id <uuid>` to check when `status` changes and retrieve the final stored URL.
+
+---
+
 ## Platform Notes
 
 | Platform | Char limit | Key requirement |

@@ -56,6 +56,7 @@ import {
   getVideoTask,
 } from './commands/video';
 import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS } from './api';
+import { uploadAsset, importAsset, getAsset } from './commands/assets';
 
 const videoGenerationOptions = (y: Argv) =>
   y
@@ -878,6 +879,58 @@ yargs(argv)
         demandOption: true,
       }),
     getVideoTask
+  )
+
+  // ── Assets ────────────────────────────────────────────────────────────────
+  .command(
+    'assets:get',
+    'Get asset details by ID',
+    (y: Argv) =>
+      y.option('id', {
+        alias: 'i',
+        type: 'string',
+        description: 'Asset UUID',
+        demandOption: true,
+      }),
+    getAsset
+  )
+
+  .command(
+    'assets:upload',
+    'Upload a local file as a workspace asset (image, video, audio, PDF)',
+    (y: Argv) =>
+      y
+        .option('file', {
+          alias: 'f',
+          type: 'string',
+          description: 'Path to the local file to upload',
+          demandOption: true,
+        })
+        .option('name', {
+          alias: 'n',
+          type: 'string',
+          description: 'Display name for the asset (defaults to filename)',
+        }),
+    uploadAsset
+  )
+
+  .command(
+    'assets:import',
+    'Import a remote URL (S3, GCP, CDN) as a workspace asset',
+    (y: Argv) =>
+      y
+        .option('url', {
+          alias: 'u',
+          type: 'string',
+          description: 'Public URL of the file to import',
+          demandOption: true,
+        })
+        .option('name', {
+          alias: 'n',
+          type: 'string',
+          description: 'Display name for the asset',
+        }),
+    importAsset
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')

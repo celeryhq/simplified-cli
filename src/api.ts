@@ -1,5 +1,24 @@
-import fetch from 'node-fetch';
 import { SimplifiedConfig } from './config';
+
+export const ASSET_TYPES = {
+  image: 0,
+  video: 2,
+  giphy: 4,
+  font: 6,
+  audio: 8,
+  pdf: 17,
+} as const;
+export type AssetTypeName = keyof typeof ASSET_TYPES;
+
+export interface AssetSignResponse {
+  resource_id: string;
+  asset: string;
+  asset_url: string;
+  signed: string;
+  asset_key: string;
+  asset_type: number;
+  bucket_name: string;
+}
 
 export interface CreatePostRequest {
   message: string;
@@ -420,6 +439,58 @@ export class SimplifiedAPI {
       '/api/v1/service/ai-image/models',
       undefined,
       params as Record<string, string | undefined>
+    );
+  }
+
+  // ── Assets ──────────────────────────────────────────────────────────────────
+
+  async signAsset(params: {
+    filename: string;
+    filetype: string;
+    resource: string;
+    resource_id: string;
+  }) {
+    return this.request<AssetSignResponse>('POST', '/api/v1/assets/sign', params);
+  }
+
+  async uploadToS3(signedUrl: string, buffer: Buffer, contentType: string) {
+    const response = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType },
+      body: buffer,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`S3 upload failed ${response.status}: ${text}`);
+    }
+  }
+
+  async createAssetFromUrl(params: {
+    url: string;
+    asset_type?: number;
+    name?: string;
+  }) {
+    return this.request<{ id: string }>('POST', '/api/v1/assets/from-url', params);
+  }
+
+  async getAsset(id: string) {
+    return this.request<unknown>('GET', `/api/v1/assets/${id}`);
+  }
+
+  async createAsset(params: {
+    thumbnail: string;
+    asset_type: number;
+    asset_name?: string;
+    asset_key?: string;
+    asset_url?: string;
+    bucket_name?: string;
+    id?: string;
+    payload?: { title: string };
+  }) {
+    return this.request<{ id: string; asset_url?: string; thumbnail?: string }>(
+      'POST',
+      '/api/v1/assets',
+      params
     );
   }
 }

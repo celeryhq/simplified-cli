@@ -1,6 +1,6 @@
 {
   "name": "simplified-cli",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "All-in-one social media CLI for Simplified.com — schedule, publish, analyze and create from the command line",
   "author": "Simplified",
   "license": "MIT",
@@ -35,13 +35,11 @@
   },
   "dependencies": {
     "figlet": "^1.11.0",
-    "node-fetch": "^2.7.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/figlet": "^1.7.0",
     "@types/node": "^20.0.0",
-    "@types/node-fetch": "^2.6.0",
     "@types/yargs": "^17.0.0",
     "tsup": "^8.5.1",
     "typescript": "^5.3.3"

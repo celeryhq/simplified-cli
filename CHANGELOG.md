@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] — 2026-04-21
+
+### Added
+
+#### Asset Management (`assets:*`)
+
+New command group for uploading and managing workspace assets.
+
+- **`assets:import`** — Import a remote file (S3, GCP, CDN URL) as a workspace asset. Backend downloads and processes the file asynchronously. Options: `--url` (required), `--name`
+- **`assets:upload`** — Upload a local file as a workspace asset via signed S3/GCP URL. Supports images (PNG, JPG, GIF, WebP, BMP, TIFF), video (MP4, MOV, AVI, MKV, WebM), audio (MP3, WAV) and PDF. Options: `--file` (required), `--name`
+- **`assets:get`** — Fetch asset details by UUID. Useful for checking processing status and retrieving the final stored URL after import or upload. Options: `--id` (required)
+
+---
+
 ## [1.1.0] — 2026-03-24
 
 ### Added
