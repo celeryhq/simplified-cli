@@ -94,10 +94,24 @@ export interface TaskStatusResponse {
 export class SimplifiedAPI {
   private apiKey: string;
   private apiUrl: string;
+  private teamspaceId?: string;
 
   constructor(config: SimplifiedConfig) {
     this.apiKey = config.apiKey;
     this.apiUrl = config.apiUrl;
+    this.teamspaceId = config.teamspaceId;
+  }
+
+  /**
+   * Inject the active teamspace into outgoing requests.
+   * PENDING backend confirmation: the exact mechanism (header name vs query param)
+   * is not finalised. Keep this the ONLY place that knows it, so swapping is one edit.
+   * When teamspaceId is undefined the request is unchanged (token's default workspace).
+   */
+  private applyTeamspace(headers: Record<string, string>): void {
+    if (this.teamspaceId) {
+      headers['X-Teamspace-Id'] = this.teamspaceId;
+    }
   }
 
   private async request<T>(
@@ -119,12 +133,15 @@ export class SimplifiedAPI {
       if (qs) url += `?${qs}`;
     }
 
+    const headers: Record<string, string> = {
+      Authorization: `Api-Key ${this.apiKey}`,
+      'Content-Type': 'application/json',
+    };
+    this.applyTeamspace(headers);
+
     const response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Api-Key ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
@@ -492,5 +509,18 @@ export class SimplifiedAPI {
       '/api/v1/assets',
       params
     );
+  }
+
+  // ── Discovery ─────────────────────────────────────────────────────────────
+
+  /**
+   * Report what the current token can access: its default workspace and teamspaces.
+   * PENDING backend confirmation: exact path and response shape to be finalised.
+   */
+  async getWorkspaces() {
+    return this.request<{
+      default_workspace?: { id: string; name?: string };
+      teamspaces?: { id: string; name?: string }[];
+    }>('GET', '/api/v1/service/workspaces');
   }
 }
