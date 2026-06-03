@@ -54,6 +54,39 @@ Get your API key from **Simplified.com → Settings → API Keys**, then export 
 export SIMPLIFIED_API_KEY=your_api_key_here
 ```
 
+## Teamspace context
+
+Your API token may have access to several teamspaces plus a default workspace.
+The CLI keeps a switchable active context so you don't need multiple tokens.
+
+Resolution order (highest first): `--teamspace` flag → `SIMPLIFIED_TEAMSPACE_ID` env → saved context (`~/.simplified/config.json`) → default workspace.
+
+```bash
+# See what the token can access (requires backend discovery support)
+simplified auth:whoami
+
+# Save friendly aliases for teamspace ids
+simplified teamspace:add prod ts_abc123
+simplified teamspace:add staging ts_def456
+
+# Switch the active context (persisted)
+simplified teamspace:use prod
+simplified teamspace:current          # -> Active teamspace: prod (ts_abc123)
+
+# Back to the default workspace
+simplified teamspace:use default
+
+# One-off override for a single command (does not change saved context)
+simplified accounts:list --teamspace staging
+SIMPLIFIED_TEAMSPACE_ID=ts_abc123 simplified accounts:list
+
+# Manage aliases
+simplified teamspace:list
+simplified teamspace:remove staging
+```
+
+If no teamspace is set, the CLI behaves exactly as before — the token uses its default workspace.
+
 ## Agentic Workflows & LLM Integration
 
 All commands print JSON to stdout. Errors go to stderr with a non-zero exit code — making Simplified CLI a reliable tool for agentic pipelines, LLM tool use, and autonomous social media workflows.
