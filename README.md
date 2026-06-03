@@ -56,29 +56,34 @@ export SIMPLIFIED_API_KEY=your_api_key_here
 
 ## Teamspace context
 
-Your API token may have access to several teamspaces plus a default workspace.
-The CLI keeps a switchable active context so you don't need multiple tokens.
+Within a workspace your token may belong to several teamspaces (Spaces) plus the workspace
+itself. The CLI keeps a switchable active context, sent to the API as the `Space` header
+(the numeric teamspace id), so you don't need a separate token per teamspace.
+
+> **One token = one workspace.** An API key is bound to a single workspace at issuance. You
+> can switch teamspaces *within* that workspace, but to operate across different workspaces you
+> need a separate key per workspace.
 
 Resolution order (highest first): `--teamspace` flag → `SIMPLIFIED_TEAMSPACE_ID` env → saved context (`~/.simplified/config.json`) → default workspace.
 
 ```bash
-# See what the token can access (requires backend discovery support)
+# See what the token can access (default workspace + member teamspaces)
 simplified auth:whoami
 
-# Save friendly aliases for teamspace ids
-simplified teamspace:add prod ts_abc123
-simplified teamspace:add staging ts_def456
+# Save friendly aliases for numeric teamspace ids
+simplified teamspace:add prod 12345
+simplified teamspace:add staging 67890
 
 # Switch the active context (persisted)
 simplified teamspace:use prod
-simplified teamspace:current          # -> Active teamspace: prod (ts_abc123)
+simplified teamspace:current          # -> Active teamspace: prod (12345)
 
 # Back to the default workspace
 simplified teamspace:use default
 
 # One-off override for a single command (does not change saved context)
 simplified accounts:list --teamspace staging
-SIMPLIFIED_TEAMSPACE_ID=ts_abc123 simplified accounts:list
+SIMPLIFIED_TEAMSPACE_ID=12345 simplified accounts:list
 
 # Manage aliases
 simplified teamspace:list
@@ -86,6 +91,8 @@ simplified teamspace:remove staging
 ```
 
 If no teamspace is set, the CLI behaves exactly as before — the token uses its default workspace.
+A request to a teamspace the token can't access fails with `403` (no silent fallback); a
+malformed id fails with `400`.
 
 ## Agentic Workflows & LLM Integration
 

@@ -1,7 +1,8 @@
 # Design: Multi-teamspace context for simplified-cli
 
 **Date:** 2026-06-03
-**Status:** Approved (brainstorming) — pending backend confirmation on two API contracts
+**Status:** Approved — backend contract **confirmed** (see "Backend contract (CONFIRMED)").
+Teamspace = Space, scoped via the `Space` header; discovery at `GET /api/v1/service/workspaces`.
 
 ## Problem
 
@@ -107,10 +108,10 @@ function writeStore(store: Store): void; // atomic: write temp file, then rename
 - A single private hook applies it inside `request()`:
 
   ```ts
-  // Mechanism is PENDING backend confirmation — kept in one place so swapping
-  // header <-> query param is a one-line change.
+  // CONFIRMED: backend resolves the teamspace from the `Space` header (numeric Space id).
+  // Kept in one place so the mechanism stays a one-edit change.
   private applyTeamspace(headers: Record<string, string>): void {
-    if (this.teamspaceId) headers['X-Teamspace-Id'] = this.teamspaceId; // placeholder header
+    if (this.teamspaceId) headers['Space'] = this.teamspaceId;
   }
   ```
 
@@ -147,19 +148,19 @@ handler degrades gracefully when it is unavailable.
 Global option (all commands): `--teamspace <id|alias>` — one-off override, highest precedence.
 Env override: `SIMPLIFIED_TEAMSPACE_ID`.
 
-## Discovery endpoint (PENDING backend)
+## Discovery endpoint (CONFIRMED)
 
-Proposed contract the backend should expose so `auth:whoami` / `teamspace:list --remote`
-can show what a token can access:
+The backend exposes the following so `auth:whoami` / `teamspace:list --remote` can show what a
+token can access (see "Backend contract (CONFIRMED)" for details — ids are integers):
 
 ```
-GET /api/v1/service/<tbd: me | workspaces>
+GET /api/v1/service/workspaces
 Authorization: Api-Key <key>
 
 200 ->
 {
-  "default_workspace": { "id": "...", "name": "..." },
-  "teamspaces": [ { "id": "...", "name": "..." }, ... ]
+  "default_workspace": { "id": <int>, "name": "..." },
+  "teamspaces": [ { "id": <int>, "name": "...", "slug": "..." }, ... ]
 }
 ```
 
@@ -194,9 +195,69 @@ The repo has no test runner; we keep it that way (per decision). Risk is mitigat
 
 ## Open items (need backend)
 
-1. **Teamspace injection mechanism** — header (`X-Teamspace-Id`?) vs query param. Isolated in
-   `applyTeamspace()`; one-line swap once confirmed.
-2. **Discovery endpoint** — path and response shape per "Discovery endpoint" above.
+Both items are now **RESOLVED** — see "Backend contract (CONFIRMED)" below.
+
+1. ~~Teamspace injection mechanism~~ → **`Space` header, numeric Space id.**
+2. ~~Discovery endpoint~~ → **`GET /api/v1/service/workspaces`, shipped (feature branch → develop).**
+
+## Backend contract (CONFIRMED)
+
+The API team implemented teamspace scoping. Key correction to our initial assumptions:
+**"teamspace" maps to a Space** (a Workspace contains many Spaces), switched via the existing
+`Space` header — no new `X-Teamspace-Id` header.
+
+### Scoping mechanism
+
+- **Header `Space`**, value = the **numeric Space id**. Not a query param, not `X-Teamspace-Id`.
+- Enforced centrally in `APIKeyAuthentication`, so it applies uniformly to every
+  `/api/v1/service/...` endpoint and the asset endpoints (upload/import register into the
+  selected teamspace).
+
+### Behaviour contract
+
+| Request | Result |
+|---|---|
+| No `Space` header | Key's default workspace, no space (unchanged / backward compatible) |
+| `Space` header, user is a member | Scoped to that teamspace |
+| `Space` header, user not a member (or space in another workspace) | **403** — never a silent fallback |
+| `Space` header malformed (non-numeric) | **400** |
+| Key is space-pinned + a different `Space` header | **403** (conflict) |
+
+### Token model (answer to Q2)
+
+The `Api-Key` (WorkspaceAPIKey) is **bound to one Workspace at issuance** — you cannot switch
+Workspace with a single key. Teamspace (Space) is **per-request**: resolved and authorized from
+the `Space` header on every request, so switching works **within** the key's workspace.
+Cross-workspace requires a different key. → `auth:whoami` surfaces this to users.
+
+### Discovery endpoint (answer to Q3 — added, not previously under `/service/`)
+
+```
+GET /api/v1/service/workspaces
+Authorization: Api-Key <token>
+
+200 ->
+{
+  "default_workspace": { "id": <int>, "name": "..." },          // singular object
+  "teamspaces": [ { "id": <int>, "name": "...", "slug": "..." }, ... ]
+}
+```
+
+- `default_workspace` = the workspace the key is bound to.
+- `teamspaces` = Spaces in that workspace the token's user is a member of.
+- **IDs are integers** — `teamspaces[].id` goes straight into the `Space` header.
+
+### CLI changes applied for this contract
+
+- `applyTeamspace()` → sends `Space: <numeric id>` (dropped the `X-Teamspace-Id` placeholder).
+- `getWorkspaces()` → reads `{ default_workspace, teamspaces[] }` with integer ids + `slug`.
+- `request()` → 403 → "no access to teamspace" (non-retryable); 400 → "invalid teamspace id".
+- `auth:whoami` → prints workspaces + the one-key-per-workspace caveat.
+
+### Rollout
+
+On a feature branch (`feat/teamspace-scoping-api-service`), MR to `develop` pending — **not yet
+on production**. `auth:whoami` degrades gracefully (404/405 → "not available yet") until it ships.
 
 ## Backend requirements (API team handoff)
 
@@ -210,9 +271,9 @@ land the CLI change is a one-line confirmation (item 1) and zero changes (item 2
 The API must accept a **teamspace identifier** on the existing `/api/v1/service/...` endpoints and
 authorize it against the token.
 
-- **Mechanism (decision needed):** HTTP header (e.g. `X-Teamspace-Id: <id>`) **or** query param
-  (`?team_id=<id>`). The CLI isolates this in `SimplifiedAPI.applyTeamspace()` — confirming the
-  exact mechanism/name is a one-line change on our side. Current placeholder: `X-Teamspace-Id`.
+- **Mechanism: CONFIRMED** → HTTP header **`Space`**, value = numeric Space id. The CLI isolates
+  this in `SimplifiedAPI.applyTeamspace()`. (Original handoff left this open; resolved — see
+  "Backend contract (CONFIRMED)".)
 - **Absent → default workspace.** When no teamspace identifier is present, the request resolves to
   the token's default workspace — i.e. exactly today's behaviour. This is what guarantees backward
   compatibility; it must not change.
@@ -252,11 +313,13 @@ Authorization: Api-Key <token>
 The CLI's `SimplifiedAPI.getWorkspaces()` already targets this shape; update the path/shape there if
 the backend differs.
 
-### Questions for the API team
+### Questions for the API team — ANSWERED
 
-1. Which scoping mechanism do you support/prefer — **header or query param** — and what exact name?
-2. Is teamspace authorization already per-request, or is the API key currently bound to one teamspace
-   at issuance time? (This design assumes a user token with access to multiple teamspaces — please
-   confirm against the real backend auth model.)
-3. Does an endpoint returning the token's workspaces/teamspaces already exist under another name,
-   before we add a new one?
+1. **Mechanism/name?** → HTTP header **`Space`**, value = numeric Space id (not a query param,
+   not `X-Teamspace-Id`).
+2. **Per-request vs bound-at-issuance?** → The `Api-Key` is bound to one **Workspace** at issuance;
+   **teamspace (Space) is per-request** via the `Space` header. Cross-workspace = different keys.
+3. **Discovery endpoint already exists?** → Not under `/service/`; they added
+   `GET /api/v1/service/workspaces`.
+
+See "Backend contract (CONFIRMED)" above for the full contract.

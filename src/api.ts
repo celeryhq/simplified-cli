@@ -104,13 +104,14 @@ export class SimplifiedAPI {
 
   /**
    * Inject the active teamspace into outgoing requests.
-   * PENDING backend confirmation: the exact mechanism (header name vs query param)
-   * is not finalised. Keep this the ONLY place that knows it, so swapping is one edit.
-   * When teamspaceId is undefined the request is unchanged (token's default workspace).
+   * The backend resolves the teamspace (a Space) from the `Space` header, value = the
+   * numeric Space id. Keep this the ONLY place that knows the mechanism, so it stays a
+   * one-edit change. When teamspaceId is undefined the request is unchanged — the token
+   * operates in its default workspace (backward compatible).
    */
   private applyTeamspace(headers: Record<string, string>): void {
     if (this.teamspaceId) {
-      headers['X-Teamspace-Id'] = this.teamspaceId;
+      headers['Space'] = this.teamspaceId;
     }
   }
 
@@ -147,6 +148,17 @@ export class SimplifiedAPI {
 
     if (!response.ok) {
       const text = await response.text();
+      // The backend rejects teamspace-scoped requests with 403 (no access) or 400
+      // (malformed Space id). Make these actionable rather than opaque API errors.
+      if (this.teamspaceId && response.status === 403) {
+        throw new Error(
+          `No access to teamspace ${this.teamspaceId} with this token (403). ` +
+            `Run "simplified auth:whoami" to see accessible teamspaces.`
+        );
+      }
+      if (this.teamspaceId && response.status === 400) {
+        throw new Error(`Invalid teamspace id "${this.teamspaceId}" (400): ${text}`);
+      }
       throw new Error(`API error ${response.status}: ${text}`);
     }
 
@@ -514,13 +526,14 @@ export class SimplifiedAPI {
   // ── Discovery ─────────────────────────────────────────────────────────────
 
   /**
-   * Report what the current token can access: its default workspace and teamspaces.
-   * PENDING backend confirmation: exact path and response shape to be finalised.
+   * Report what the current token can access: its default workspace (the workspace the
+   * Api-Key is bound to) and the teamspaces (Spaces) the token's user is a member of.
+   * IDs are integers — `teamspaces[].id` is passed straight into the `Space` header.
    */
   async getWorkspaces() {
     return this.request<{
-      default_workspace?: { id: string; name?: string };
-      teamspaces?: { id: string; name?: string }[];
+      default_workspace?: { id: number; name?: string };
+      teamspaces?: { id: number; name?: string; slug?: string }[];
     }>('GET', '/api/v1/service/workspaces');
   }
 }
