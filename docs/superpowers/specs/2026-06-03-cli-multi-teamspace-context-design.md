@@ -197,3 +197,66 @@ The repo has no test runner; we keep it that way (per decision). Risk is mitigat
 1. **Teamspace injection mechanism** — header (`X-Teamspace-Id`?) vs query param. Isolated in
    `applyTeamspace()`; one-line swap once confirmed.
 2. **Discovery endpoint** — path and response shape per "Discovery endpoint" above.
+
+## Backend requirements (API team handoff)
+
+The CLI side is complete and ships today (token unchanged, context layer is CLI-only). For the
+context switch to actually take effect, the Simplified API needs the two additions below. The CLI
+already emits a placeholder teamspace header and already calls a discovery method, so once these
+land the CLI change is a one-line confirmation (item 1) and zero changes (item 2).
+
+### Req 1 — Teamspace scoping on existing endpoints (REQUIRED)
+
+The API must accept a **teamspace identifier** on the existing `/api/v1/service/...` endpoints and
+authorize it against the token.
+
+- **Mechanism (decision needed):** HTTP header (e.g. `X-Teamspace-Id: <id>`) **or** query param
+  (`?team_id=<id>`). The CLI isolates this in `SimplifiedAPI.applyTeamspace()` — confirming the
+  exact mechanism/name is a one-line change on our side. Current placeholder: `X-Teamspace-Id`.
+- **Absent → default workspace.** When no teamspace identifier is present, the request resolves to
+  the token's default workspace — i.e. exactly today's behaviour. This is what guarantees backward
+  compatibility; it must not change.
+- **Present → scoped to that teamspace.** The request operates within the given teamspace.
+- **Authorization.** Verify the token's user has access to the teamspace. No access → **403**
+  (must NOT silently fall back to default — a silent fallback would let a user believe they are
+  writing to teamspace A while actually writing to their default workspace).
+- **Consistency across ALL resources.** The context applies to everything the CLI touches, so every
+  endpoint must honour the same scoping:
+  - `social-media`: `get-accounts`, `create`, `get-posts`, `get-drafts`, `update-post`,
+    `update-draft`, `delete-post`, `delete-draft`, `analytics/{range,posts,aggregated,audience}`
+  - `assets`: `sign`, `from-url`, `POST /assets`, `GET /assets/{id}` — uploads/imports must register
+    the asset into the **selected** teamspace, not always the default
+  - `ai-image`: `generate`, `status/{id}`, `models`
+  - `tasks`: `tasks/{id}`, `tasks/progress/{id}`; `export-lib/{id}`
+- **Async / derived resources.** A `task_id` / `art_variation_id` / asset created in teamspace A must
+  remain retrievable in the teamspace-A context. The CLI sends the identifier on every request
+  (including status polls), so the backend only needs consistent per-request authorization.
+
+### Req 2 — Discovery endpoint (RECOMMENDED, not blocking)
+
+Lets `auth:whoami` report what the token can access, and lets `teamspace:add` be validated instead
+of pasting raw ids blind. The feature works without it (the CLI degrades gracefully on 404/405), but
+UX is much better with it.
+
+```
+GET /api/v1/service/workspaces        # exact path to be confirmed
+Authorization: Api-Key <token>
+
+200 ->
+{
+  "default_workspace": { "id": "...", "name": "..." },
+  "teamspaces": [ { "id": "...", "name": "..." }, ... ]
+}
+```
+
+The CLI's `SimplifiedAPI.getWorkspaces()` already targets this shape; update the path/shape there if
+the backend differs.
+
+### Questions for the API team
+
+1. Which scoping mechanism do you support/prefer — **header or query param** — and what exact name?
+2. Is teamspace authorization already per-request, or is the API key currently bound to one teamspace
+   at issuance time? (This design assumes a user token with access to multiple teamspaces — please
+   confirm against the real backend auth model.)
+3. Does an endpoint returning the token's workspaces/teamspaces already exist under another name,
+   before we add a new one?
