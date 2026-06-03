@@ -57,6 +57,15 @@ import {
 } from './commands/video';
 import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS } from './api';
 import { uploadAsset, importAsset, getAsset } from './commands/assets';
+import { setTeamspaceOverride } from './config';
+import {
+  teamspaceCurrent,
+  teamspaceUse,
+  teamspaceAdd,
+  teamspaceList,
+  teamspaceRemove,
+} from './commands/teamspace';
+import { whoami } from './commands/auth';
 
 const videoGenerationOptions = (y: Argv) =>
   y
@@ -98,6 +107,14 @@ if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
 yargs(argv)
   .scriptName('simplified')
   .usage('$0 <command> [options]')
+  .option('teamspace', {
+    type: 'string',
+    description: 'Teamspace id or saved alias for this command (overrides env and saved context)',
+    global: true,
+  })
+  .middleware((a) => {
+    setTeamspaceOverride(a.teamspace as string | undefined);
+  })
 
   // ── Accounts ──────────────────────────────────────────────────────────────
   .command(
@@ -931,6 +948,55 @@ yargs(argv)
           description: 'Display name for the asset',
         }),
     importAsset
+  )
+
+  // ── Teamspace context ───────────────────────────────────────────────────────
+  .command(
+    'teamspace:current',
+    'Show the active teamspace context and where it came from',
+    (y: Argv) => y,
+    () => teamspaceCurrent()
+  )
+  .command(
+    'teamspace:use <target>',
+    'Switch the active teamspace (id, saved alias, or "default" for the default workspace)',
+    (y: Argv) =>
+      y.positional('target', {
+        type: 'string',
+        describe: 'Teamspace id, saved alias, or "default"',
+        demandOption: true,
+      }),
+    (a) => teamspaceUse({ target: a.target as string })
+  )
+  .command(
+    'teamspace:add <alias> <id>',
+    'Save an alias for a teamspace id',
+    (y: Argv) =>
+      y
+        .positional('alias', { type: 'string', describe: 'Short alias', demandOption: true })
+        .positional('id', { type: 'string', describe: 'Teamspace id', demandOption: true }),
+    (a) => teamspaceAdd({ alias: a.alias as string, id: a.id as string })
+  )
+  .command(
+    'teamspace:list',
+    'List saved teamspace aliases and mark the active one',
+    (y: Argv) => y,
+    () => teamspaceList()
+  )
+  .command(
+    'teamspace:remove <alias>',
+    'Remove a saved teamspace alias',
+    (y: Argv) =>
+      y.positional('alias', { type: 'string', describe: 'Alias to remove', demandOption: true }),
+    (a) => teamspaceRemove({ alias: a.alias as string })
+  )
+
+  // ── Auth ─────────────────────────────────────────────────────────────────────
+  .command(
+    'auth:whoami',
+    'Show the default workspace and teamspaces accessible to the current token',
+    (y: Argv) => y,
+    () => whoami()
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')
