@@ -1,6 +1,6 @@
 ---
 name: simplified-cli
-description: Manage social media accounts, schedule posts, analyze performance, process images and videos, and generate AI images using the Simplified CLI. Use when the user wants to publish to social media, analyze performance, process images, generate AI images, or work with video.
+description: Manage social media accounts, schedule posts, analyze performance, process images and videos, generate AI images, and switch teamspace context using the Simplified CLI. Use when the user wants to publish to social media, analyze performance, process images, generate AI images, work with video, or scope commands to a specific teamspace.
 ---
 
 # simplified-cli Skill
@@ -22,10 +22,40 @@ npm install -g simplified-cli
 
 ---
 
+## Teamspace context
+
+A token operates in one **workspace** but may belong to several **teamspaces** (Spaces) within
+it. Every command can be scoped to a teamspace; with no teamspace set, commands use the token's
+default workspace (unchanged behaviour). The active teamspace is sent to the API as the numeric
+`Space` header.
+
+```bash
+# Discover what the token can access (default workspace + member teamspaces)
+simplified auth:whoami
+
+# One-off scope for a single command (highest precedence, nothing persisted)
+simplified accounts:list --teamspace 1911
+
+# Persisted context (saved to ~/.simplified/config.json)
+simplified teamspace:add store 1911     # alias -> numeric id
+simplified teamspace:use store          # set active teamspace
+simplified teamspace:current            # show active context + its source
+simplified teamspace:use default        # back to default workspace
+```
+
+Resolution precedence (highest first): `--teamspace` flag → `SIMPLIFIED_TEAMSPACE_ID` env →
+saved context → default workspace.
+
+**Agent rule:** when the user names a teamspace, resolve its numeric id with `auth:whoami`
+first, then either pass `--teamspace <id>` per command or set it once with `teamspace:use`.
+
+---
+
 ## Available Domains
 
 | Domain | Commands | Reference |
 |---|---|---|
+| **Context** | `auth:whoami`, `teamspace:current`, `teamspace:use`, `teamspace:add`, `teamspace:list`, `teamspace:remove` | (this file — "Teamspace context") |
 | **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
 | **Analytics** | `analytics:range`, `analytics:posts`, `analytics:aggregated`, `analytics:audience` | [ANALYTICS.md](references/ANALYTICS.md) |
 | **Image Tools** | `image:blur-background`, `image:remove-background`, `image:convert`, `image:upscale`, `image:restore`, `image:generative-fill`, `image:outpaint`, `image:magic-inpaint`, `image:pix-to-pix`, `image:replace`, `image:sd-scribble` | [IMAGE_TOOLS.md](references/IMAGE_TOOLS.md) |
@@ -35,6 +65,19 @@ npm install -g simplified-cli
 ---
 
 ## Agent Patterns
+
+### Work inside a specific teamspace
+```bash
+# 1. Find the teamspace id
+simplified auth:whoami
+
+# 2. Account IDs are scoped to the teamspace — list within it
+simplified accounts:list --teamspace <teamspace_id>
+
+# 3. Create/draft in that teamspace (asset, draft and post all land in it)
+simplified posts:create -c "Your content" -a "<account_id>" --action draft \
+  --teamspace <teamspace_id>
+```
 
 ### Post to social media
 ```bash
@@ -155,6 +198,7 @@ simplified analytics:audience -a 123 --from 2026-03-01 --to 2026-03-13
 
 ## Critical Rules
 
+- **Teamspace scoping.** Use `auth:whoami` to resolve teamspace ids; pass `--teamspace <id>` (or set `teamspace:use`) to scope a command. One token = one workspace — to work across workspaces you need a separate key per workspace. A teamspace the token can't access fails with `403`; a non-numeric id fails with `400`.
 - **Analytics `date_to` must never be in the future.** Cap at today when user says "this month" or "last 7 days".
 - **Async image commands** return a `task_id`. Use `--wait` to block until done, or `image:task --id <id>` to poll manually.
 - **Async video commands** return a `task_id`. Use `--wait` to block until done (timeout 300s), or `video:task --id <id>` to poll manually. AI generation commands (`script-to-video`, `text-to-video`) also poll export status when using `--wait`.

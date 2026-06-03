@@ -94,10 +94,25 @@ export interface TaskStatusResponse {
 export class SimplifiedAPI {
   private apiKey: string;
   private apiUrl: string;
+  private teamspaceId?: string;
 
   constructor(config: SimplifiedConfig) {
     this.apiKey = config.apiKey;
     this.apiUrl = config.apiUrl;
+    this.teamspaceId = config.teamspaceId;
+  }
+
+  /**
+   * Inject the active teamspace into outgoing requests.
+   * The backend resolves the teamspace (a Space) from the `Space` header, value = the
+   * numeric Space id. Keep this the ONLY place that knows the mechanism, so it stays a
+   * one-edit change. When teamspaceId is undefined the request is unchanged — the token
+   * operates in its default workspace (backward compatible).
+   */
+  private applyTeamspace(headers: Record<string, string>): void {
+    if (this.teamspaceId) {
+      headers['Space'] = this.teamspaceId;
+    }
   }
 
   private async request<T>(
@@ -119,17 +134,31 @@ export class SimplifiedAPI {
       if (qs) url += `?${qs}`;
     }
 
+    const headers: Record<string, string> = {
+      Authorization: `Api-Key ${this.apiKey}`,
+      'Content-Type': 'application/json',
+    };
+    this.applyTeamspace(headers);
+
     const response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Api-Key ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
     if (!response.ok) {
       const text = await response.text();
+      // The backend rejects teamspace-scoped requests with 403 (no access) or 400
+      // (malformed Space id). Make these actionable rather than opaque API errors.
+      if (this.teamspaceId && response.status === 403) {
+        throw new Error(
+          `No access to teamspace ${this.teamspaceId} with this token (403). ` +
+            `Run "simplified auth:whoami" to see accessible teamspaces.`
+        );
+      }
+      if (this.teamspaceId && response.status === 400) {
+        throw new Error(`Invalid teamspace id "${this.teamspaceId}" (400): ${text}`);
+      }
       throw new Error(`API error ${response.status}: ${text}`);
     }
 
@@ -492,5 +521,19 @@ export class SimplifiedAPI {
       '/api/v1/assets',
       params
     );
+  }
+
+  // ── Discovery ─────────────────────────────────────────────────────────────
+
+  /**
+   * Report what the current token can access: its default workspace (the workspace the
+   * Api-Key is bound to) and the teamspaces (Spaces) the token's user is a member of.
+   * IDs are integers — `teamspaces[].id` is passed straight into the `Space` header.
+   */
+  async getWorkspaces() {
+    return this.request<{
+      default_workspace?: { id: number; name?: string };
+      teamspaces?: { id: number; name?: string; slug?: string }[];
+    }>('GET', '/api/v1/service/workspaces');
   }
 }

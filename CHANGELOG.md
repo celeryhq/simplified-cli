@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] — 2026-06-03
+
+### Added
+
+#### Multi-teamspace context
+
+A single API key can now operate against multiple teamspaces (Spaces) within its workspace via a
+switchable, persisted context — no need for a separate token per teamspace. The active teamspace is
+sent to the API as the numeric `Space` header; with no context set, requests are byte-for-byte
+identical to before (token's default workspace), so the change is fully backward compatible.
+
+- **`auth:whoami`** — report what the current token can access: its default workspace and the
+  teamspaces (Spaces) the token's user is a member of, via `GET /api/v1/service/workspaces`
+- **`teamspace:current`** — show the active teamspace and its source (flag / env / config / default)
+- **`teamspace:use <id|alias>`** — set the persisted active teamspace; `teamspace:use default` clears it
+- **`teamspace:add <alias> <id>`** — save an `alias → numeric id` mapping
+- **`teamspace:list`** — list saved aliases and mark the active one
+- **`teamspace:remove <alias>`** — remove a saved alias
+- **Global `--teamspace <id|alias>` flag** — one-off scope for any command (highest precedence)
+- **`SIMPLIFIED_TEAMSPACE_ID`** env var — session-level override
+
+Resolution precedence (highest first): `--teamspace` flag → `SIMPLIFIED_TEAMSPACE_ID` env →
+saved context (`~/.simplified/config.json`) → default workspace. Errors are actionable: a teamspace
+the token can't access fails with `403`, a non-numeric id with `400`.
+
+> **Note:** one API key is bound to one workspace at issuance. Teamspace switching works *within*
+> that workspace; operating across workspaces still requires a separate key per workspace.
+
+#### Documentation
+
+- Updated `skills/simplified-cli/SKILL.md` with the teamspace context section, agent pattern, and critical rule
+- Updated `README.md` with the teamspace context guide
+
+---
+
 ## [1.2.0] — 2026-04-21
 
 ### Added
