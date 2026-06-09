@@ -595,6 +595,50 @@ export class SimplifiedAPI {
     return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents/by-type/${contextType}`);
   }
 
+  // ── Projects ──────────────────────────────────────────────────────────────
+
+  async listProjects(resourcetype: string, params?: { primary_type?: string; ordering?: string; search?: string }) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createProject(resourcetype: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}`, body);
+  }
+
+  async getProject(resourcetype: string, id: string) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${id}`);
+  }
+
+  async exportProjectItems(resourcetype: string, id: string, body: { partner_id: number; item_ids: string[] }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${id}/export-items`, body);
+  }
+
+  // ── Project Items ─────────────────────────────────────────────────────────
+
+  async listProjectItems(resourcetype: string, projectId: string, params?: { primary_type?: string; ordering?: string; search?: string }) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${projectId}/items`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createProjectItem(resourcetype: string, projectId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items`, body);
+  }
+
+  async getProjectItem(resourcetype: string, projectId: string, id: string) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}`);
+  }
+
+  async deleteProjectItem(resourcetype: string, projectId: string, id: string) {
+    return this.request<unknown>('DELETE', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}`);
+  }
+
+  async assignAgentToItem(resourcetype: string, projectId: string, id: string, body: { agent_id: string }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}/assign-agent`, body);
+  }
+
+  async reorderProjectItem(resourcetype: string, projectId: string, id: string, body: { position: number }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}/reorder`, body);
+  }
+
   // ── Discovery ─────────────────────────────────────────────────────────────
 
   /**
