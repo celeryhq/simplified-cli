@@ -79,6 +79,19 @@ import {
   contextDelete,
   contextGet,
 } from './commands/brandkit';
+import {
+  projectsList,
+  projectsCreate,
+  projectsGet,
+  projectsDelete,
+  projectsExport,
+  itemList,
+  itemCreate,
+  itemGet,
+  itemDelete,
+  itemAssignAgent,
+  itemReorder,
+} from './commands/projects';
 
 const videoGenerationOptions = (y: Argv) =>
   y
@@ -1197,6 +1210,138 @@ yargs(argv)
           demandOption: true,
         }),
     contextGet
+  )
+
+  // ── Projects ──────────────────────────────────────────────────────────────
+  .command(
+    'projects:list',
+    'List projects of a given resourcetype',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype (e.g. pm, blogger, ad)', demandOption: true })
+        .option('primary-type', { type: 'string', description: 'Filter by primary type' })
+        .option('ordering', { type: 'string', description: 'Field to order results by' })
+        .option('search', { type: 'string', description: 'Search term' })
+        .example('$0 projects:list --type blogger', 'List blogger projects'),
+    projectsList
+  )
+  .command(
+    'projects:create',
+    'Create a project of a given resourcetype',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('title', { type: 'string', description: 'Project title' })
+        .option('description', { type: 'string', description: 'Project description' })
+        .option('primary-type', { type: 'string', description: 'Project category string' })
+        .option('data', { type: 'string', description: 'Inline JSON for the project data field' })
+        .option('json', { type: 'string', description: 'Path to JSON file with the full body' })
+        .example('$0 projects:create --type pm --title "Q3 Campaign"', 'Create a project'),
+    projectsCreate
+  )
+  .command(
+    'projects:get',
+    'Get a project by id',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('id', { type: 'string', description: 'Project id', demandOption: true }),
+    projectsGet
+  )
+  .command(
+    'projects:delete',
+    'Soft-delete a project by id',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('id', { type: 'string', description: 'Project id', demandOption: true }),
+    projectsDelete
+  )
+  .command(
+    'projects:export',
+    'Export project items to a partner integration',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Project id', demandOption: true })
+        .option('partner-id', { type: 'number', description: 'Partner integration id', demandOption: true })
+        .option('item-ids', { type: 'string', description: 'Comma-separated ProjectItem UUIDs', demandOption: true })
+        .example('$0 projects:export --type pm --project <id> --partner-id 123 --item-ids "uuid1,uuid2"', 'Export items'),
+    projectsExport
+  )
+
+  // ── Project Items ─────────────────────────────────────────────────────────
+  .command(
+    'projects:item-list',
+    'List items within a project',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('primary-type', { type: 'string', description: 'Filter by primary type' })
+        .option('ordering', { type: 'string', description: 'Field to order results by' })
+        .option('search', { type: 'string', description: 'Search term' }),
+    itemList
+  )
+  .command(
+    'projects:item-create',
+    'Create an item within a project',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('title', { type: 'string', description: 'Item title' })
+        .option('description', { type: 'string', description: 'Item description' })
+        .option('primary-type', { type: 'string', description: 'Item category string' })
+        .option('data', { type: 'string', description: 'Inline JSON for the item data field' })
+        .option('json', { type: 'string', description: 'Path to JSON file with the full body' })
+        .option('start-date', { type: 'string', description: 'Start date (ISO 8601)' })
+        .option('due-date', { type: 'string', description: 'Due date (ISO 8601)' })
+        .option('status', { type: 'string', description: 'Status string (max 16 chars)' })
+        .option('priority', { type: 'number', description: 'Priority level (default 0)' }),
+    itemCreate
+  )
+  .command(
+    'projects:item-get',
+    'Get a project item by id',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('id', { type: 'string', description: 'Item id', demandOption: true }),
+    itemGet
+  )
+  .command(
+    'projects:item-delete',
+    'Soft-delete a project item by id',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('id', { type: 'string', description: 'Item id', demandOption: true }),
+    itemDelete
+  )
+  .command(
+    'projects:item-assign-agent',
+    'Assign an AI agent to a project item',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('id', { type: 'string', description: 'Item id', demandOption: true })
+        .option('agent-id', { type: 'string', description: 'Agent (Chatbot) UUID', demandOption: true }),
+    itemAssignAgent
+  )
+  .command(
+    'projects:item-reorder',
+    'Move a project item to a new position',
+    (y: Argv) =>
+      y
+        .option('type', { type: 'string', description: 'Project resourcetype', demandOption: true })
+        .option('project', { type: 'string', description: 'Parent project id', demandOption: true })
+        .option('id', { type: 'string', description: 'Item id', demandOption: true })
+        .option('position', { type: 'number', description: 'New position index', demandOption: true }),
+    itemReorder
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')
