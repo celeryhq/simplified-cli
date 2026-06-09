@@ -337,6 +337,67 @@ simplified assets:get --id "ASSET_UUID"
 
 ---
 
+### Brand Kits
+
+Store and manage brand identity assets (colors, fonts, logos, voice, ICPs, USPs) and attach structured context documents for AI-driven content generation.
+
+```bash
+# Create a brand kit
+simplified brandkit:create --title "Velle Studio"
+
+# Populate with style data (colors, typography)
+simplified brandkit:build --brand <uuid> --json style.json
+
+# Import structured modules (brand voice, ICPs, etc.)
+simplified brandkit:import --brand <uuid> --json modules.json
+
+# Retrieve brand book (AI-optimized view)
+simplified brandkit:brandbook --brand <uuid> --elements "brief,voices,colors,fonts,usps,brand_icps"
+
+# Attach a context document
+simplified brandkit:context-create --brand <uuid> --doc-type brand_voice --name "Voice" --content-file voice.md
+
+# Get a specific context document by canonical type
+simplified brandkit:context-get --brand <uuid> --type seo_guidelines
+```
+
+**Brand kit commands:** `brandkit:list` · `brandkit:create` · `brandkit:get` · `brandkit:brandbook` · `brandkit:build` · `brandkit:import`
+
+**Brand context commands:** `brandkit:context-list` · `brandkit:context-create` · `brandkit:context-update` · `brandkit:context-delete` · `brandkit:context-get`
+
+**`--elements` values:** `voices` · `colors` · `fonts` · `logos` · `cover` · `description` · `social_links` · `assets` · `videos` · `knowledge` · `captions` · `brief` · `comprehensive` · `brand_icps` · `usps` · `products` · `competitors` · `content_pillars`
+
+**`brandkit:context-get --type` values:** `brand_voice` · `style_guide` · `seo_guidelines` · `internal_links` · `target_keywords` · `features` · `competitor_analysis` · `writing_examples` · `cro_best_practices` · `company_research` · `brand_profile` · `market_positioning` · `icps` · `usps` · `content_pillars` · `marketing_strategy`
+
+---
+
+### Projects & Items
+
+Organize content work into projects and items. The `--type` flag is a polymorphic resourcetype selector (`pm`, `blogger`, `ad`, `campaign`, `blog`, `SMQuotes`, `AIAvatarVideo`, `AiProductVideos`, `UGCVideo`, `ImageYTThumb`).
+
+```bash
+# Create a project
+simplified projects:create --type pm --title "Q3 Campaign"
+
+# List projects
+simplified projects:list --type pm
+
+# Add an item to a project
+simplified projects:item-create --type pm --project <projectId> --title "Write intro post" --status "todo"
+
+# Assign an AI agent to an item
+simplified projects:item-assign-agent --type pm --project <projectId> --id <itemId> --agent-id <agentUUID>
+
+# Export items to a partner integration
+simplified projects:export --type pm --project <projectId> --partner-id 42 --item-ids "uuid1,uuid2"
+```
+
+**Project commands:** `projects:list` · `projects:create` · `projects:get` · `projects:delete` · `projects:export`
+
+**Item commands:** `projects:item-list` · `projects:item-create` · `projects:item-get` · `projects:item-delete` · `projects:item-assign-agent` · `projects:item-reorder`
+
+---
+
 ## Platform Notes
 
 | Platform | Char limit | Key requirement |
