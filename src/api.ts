@@ -174,7 +174,16 @@ export class SimplifiedAPI {
       throw new Error(`API error ${response.status}: ${text}`);
     }
 
-    return response.json() as Promise<T>;
+    // 204 No Content (DELETE) and empty bodies have nothing to parse. Returning the raw
+    // json() here would throw on an empty body, so short-circuit to undefined.
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    const text = await response.text();
+    if (!text) {
+      return undefined as T;
+    }
+    return JSON.parse(text) as T;
   }
 
   async getAccounts(network?: string) {
@@ -537,6 +546,99 @@ export class SimplifiedAPI {
     );
   }
 
+  // ── Brand Kits ────────────────────────────────────────────────────────────
+
+  async listBrandKits(params?: { search?: string }) {
+    return this.request<unknown>('GET', '/api/v2/brandkits', undefined, params as Record<string, string | undefined>);
+  }
+
+  async createBrandKit(data: { title: string; extra?: { description?: string; social_links?: unknown[] } }) {
+    return this.request<unknown>('POST', '/api/v1/brandkit', data);
+  }
+
+  async getBrandBook(brandId: string, params?: { elements?: string }) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/brandbook`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async buildBrandKit(brandId: string, body: Record<string, unknown>) {
+    return this.request<{
+      brand_kit_id?: string;
+      status?: string;
+      version?: number;
+      warnings?: string[];
+    }>('POST', `/api/v2/brandkits/${brandId}/build`, body);
+  }
+
+  async importBrandKitModules(brandId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('PATCH', `/api/v1/brandkit/${brandId}/import-modules`, body);
+  }
+
+  // ── Context Documents ─────────────────────────────────────────────────────
+
+  async listContextDocuments(brandId: string, params?: { canonical_key?: string; search?: string; ordering?: string }) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createContextDocument(brandId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/brandkit/${brandId}/context-documents`, body);
+  }
+
+  async updateContextDocument(brandId: string, documentLinkId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('PATCH', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`, body);
+  }
+
+  async deleteContextDocument(brandId: string, documentLinkId: string) {
+    return this.request<unknown>('DELETE', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`);
+  }
+
+  async getContextDocumentByType(brandId: string, contextType: string) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents/by-type/${contextType}`);
+  }
+
+  // ── Projects ──────────────────────────────────────────────────────────────
+
+  async listProjects(resourcetype: string, params?: { primary_type?: string; ordering?: string; search?: string }) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createProject(resourcetype: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}`, body);
+  }
+
+  async getProject(resourcetype: string, id: string) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${id}`);
+  }
+
+  async exportProjectItems(resourcetype: string, id: string, body: { partner_id: number; item_ids: string[] }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${id}/export-items`, body);
+  }
+
+  // ── Project Items ─────────────────────────────────────────────────────────
+
+  async listProjectItems(resourcetype: string, projectId: string, params?: { primary_type?: string; ordering?: string; search?: string }) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${projectId}/items`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createProjectItem(resourcetype: string, projectId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items`, body);
+  }
+
+  async getProjectItem(resourcetype: string, projectId: string, id: string) {
+    return this.request<unknown>('GET', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}`);
+  }
+
+  async deleteProjectItem(resourcetype: string, projectId: string, id: string) {
+    return this.request<unknown>('DELETE', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}`);
+  }
+
+  async assignAgentToItem(resourcetype: string, projectId: string, id: string, body: { agent_id: string }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}/assign-agent`, body);
+  }
+
+  async reorderProjectItem(resourcetype: string, projectId: string, id: string, body: { position: number }) {
+    return this.request<unknown>('POST', `/api/v1/projects/${resourcetype}/${projectId}/items/${id}/reorder`, body);
+  }
+
   // ── Discovery ─────────────────────────────────────────────────────────────
 
   /**
@@ -549,5 +651,13 @@ export class SimplifiedAPI {
       default_workspace?: { id: number; name?: string };
       teamspaces?: { id: number; name?: string; slug?: string }[];
     }>('GET', '/api/v1/service/workspaces');
+  }
+
+  async getBrandKit(brandId: string, params?: { expand?: string; fields?: string; omit?: string }) {
+    return this.request<unknown>('GET', `/api/v2/brandkits/${brandId}`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async deleteProject(resourcetype: string, id: string) {
+    return this.request<unknown>('DELETE', `/api/v1/projects/${resourcetype}/${id}`);
   }
 }

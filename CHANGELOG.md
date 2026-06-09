@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] — 2026-06-09
+
+### Added
+
+- **Brand Kits**: `brandkit:list`, `brandkit:create`, `brandkit:get`, `brandkit:brandbook`, `brandkit:build`, `brandkit:import`.
+- **Brand Context Documents**: `brandkit:context-list`, `brandkit:context-create`, `brandkit:context-update`, `brandkit:context-delete`, `brandkit:context-get`.
+- **Projects & Items**: `projects:list`, `projects:create`, `projects:get`, `projects:delete`, `projects:export`, and `projects:item-{list,create,get,delete,assign-agent,reorder}`.
+- Test runner (`vitest`) with unit coverage for the input helpers and `request()` 204 handling.
+
+---
+
 ## [1.3.1] — 2026-06-09
 
 ### Fixed

@@ -81,6 +81,8 @@ stale env key can't silently shadow the one you logged in with. Keys are stored 
 | **Image Tools** | `image:blur-background`, `image:remove-background`, `image:convert`, `image:upscale`, `image:restore`, `image:generative-fill`, `image:outpaint`, `image:magic-inpaint`, `image:pix-to-pix`, `image:replace`, `image:sd-scribble` | [IMAGE_TOOLS.md](references/IMAGE_TOOLS.md) |
 | **Video Tools** | `video:add-b-rolls`, `video:convert`, `video:merge`, `video:remove-audio`, `video:reverse`, `video:script-to-video`, `video:text-to-video`, `video:speedup`, `video:task` | [VIDEO_TOOLS.md](references/VIDEO_TOOLS.md) |
 | **AI Image Generation** | `ai-image:generate`, `ai-image:status`, `ai-image:models` | [AI_IMAGE.md](references/AI_IMAGE.md) |
+| **Brand Kits & Brand Context** | `brandkit:list`, `brandkit:create`, `brandkit:get`, `brandkit:brandbook`, `brandkit:build`, `brandkit:import`, `brandkit:context-list`, `brandkit:context-create`, `brandkit:context-update`, `brandkit:context-delete`, `brandkit:context-get` | [BRAND_KIT.md](references/BRAND_KIT.md) |
+| **Projects & Items** | `projects:list`, `projects:create`, `projects:get`, `projects:delete`, `projects:export`, `projects:item-list`, `projects:item-create`, `projects:item-get`, `projects:item-delete`, `projects:item-assign-agent`, `projects:item-reorder` | [PROJECTS.md](references/PROJECTS.md) |
 
 ---
 
