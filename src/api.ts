@@ -174,7 +174,16 @@ export class SimplifiedAPI {
       throw new Error(`API error ${response.status}: ${text}`);
     }
 
-    return response.json() as Promise<T>;
+    // 204 No Content (DELETE) and empty bodies have nothing to parse. Returning the raw
+    // json() here would throw on an empty body, so short-circuit to undefined.
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    const text = await response.text();
+    if (!text) {
+      return undefined as T;
+    }
+    return JSON.parse(text) as T;
   }
 
   async getAccounts(network?: string) {
@@ -549,5 +558,13 @@ export class SimplifiedAPI {
       default_workspace?: { id: number; name?: string };
       teamspaces?: { id: number; name?: string; slug?: string }[];
     }>('GET', '/api/v1/service/workspaces');
+  }
+
+  async getBrandKit(brandId: string, params?: { expand?: string; fields?: string; omit?: string }) {
+    return this.request<unknown>('GET', `/api/v2/brandkits/${brandId}`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async deleteProject(resourcetype: string, id: string) {
+    return this.request<unknown>('DELETE', `/api/v1/projects/${resourcetype}/${id}`);
   }
 }
