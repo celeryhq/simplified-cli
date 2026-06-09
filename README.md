@@ -48,11 +48,36 @@ npm install -g simplified-cli
 
 ## Setup
 
-Get your API key from **Simplified.com → Settings → API Keys**, then export it:
+Get your API key from **Simplified.com → Settings → API Keys**. Either export it:
 
 ```bash
 export SIMPLIFIED_API_KEY=your_api_key_here
 ```
+
+…or store it in the CLI with a named profile (recommended, especially if you juggle several
+workspaces):
+
+```bash
+simplified auth:login mattox        # prompts for the key (hidden input), saves & activates it
+```
+
+### API key profiles
+
+Store multiple API keys and switch between them — handy because one key is bound to one workspace.
+
+```bash
+simplified auth:login mattox        # save & activate (hidden prompt)
+simplified auth:login client2 --api-key sk_xxx   # non-interactive (CI / scripting)
+simplified auth:use mattox          # switch the active key
+simplified auth:list                # list profiles (masked), '*' marks the active one
+simplified auth:whoami              # show the active key (id + source) and accessible teamspaces
+simplified auth:logout              # remove the active profile (or: auth:logout <name>)
+```
+
+Resolution order (highest first): `--api-key <key>` flag → active profile → `SIMPLIFIED_API_KEY`
+env. The stored profile **wins over the env var**, so a stale `SIMPLIFIED_API_KEY` left in your
+shell can't silently shadow the key you logged in with — if env is set but ignored, the CLI warns
+and shows both (masked). Keys live in `~/.simplified/config.json` (`0600` permissions).
 
 ## Teamspace context
 

@@ -57,7 +57,7 @@ import {
 } from './commands/video';
 import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS } from './api';
 import { uploadAsset, importAsset, getAsset } from './commands/assets';
-import { setTeamspaceOverride } from './config';
+import { setApiKeyOverride, setTeamspaceOverride } from './config';
 import {
   teamspaceCurrent,
   teamspaceUse,
@@ -65,7 +65,7 @@ import {
   teamspaceList,
   teamspaceRemove,
 } from './commands/teamspace';
-import { whoami } from './commands/auth';
+import { whoami, login, use as authUse, list as authList, logout } from './commands/auth';
 
 const videoGenerationOptions = (y: Argv) =>
   y
@@ -112,8 +112,14 @@ yargs(argv)
     description: 'Teamspace id or saved alias for this command (overrides env and saved context)',
     global: true,
   })
+  .option('api-key', {
+    type: 'string',
+    description: 'API key for this command (overrides the active profile and SIMPLIFIED_API_KEY)',
+    global: true,
+  })
   .middleware((a) => {
     setTeamspaceOverride(a.teamspace as string | undefined);
+    setApiKeyOverride(a['api-key'] as string | undefined);
   })
 
   // ── Accounts ──────────────────────────────────────────────────────────────
@@ -997,6 +1003,32 @@ yargs(argv)
     'Show the default workspace and teamspaces accessible to the current token',
     (y: Argv) => y,
     () => whoami()
+  )
+  .command(
+    'auth:login <name>',
+    'Save an API key under a profile name and make it the active key',
+    (y: Argv) =>
+      y.positional('name', { type: 'string', describe: 'Profile name', demandOption: true }),
+    (a) => login(a.name as string, a['api-key'] as string | undefined)
+  )
+  .command(
+    'auth:use <name>',
+    'Switch the active API key profile',
+    (y: Argv) =>
+      y.positional('name', { type: 'string', describe: 'Profile name', demandOption: true }),
+    (a) => authUse(a.name as string)
+  )
+  .command(
+    'auth:list',
+    'List saved API key profiles and mark the active one',
+    (y: Argv) => y,
+    () => authList()
+  )
+  .command(
+    'auth:logout [name]',
+    'Remove an API key profile (defaults to the active one)',
+    (y: Argv) => y.positional('name', { type: 'string', describe: 'Profile name to remove' }),
+    (a) => logout(a.name as string | undefined)
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')

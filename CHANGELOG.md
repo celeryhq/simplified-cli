@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+#### API key profiles (`auth:login`)
+
+Store multiple named API keys in the CLI and switch between them, mirroring the `teamspace:*` model —
+no more hand-editing `SIMPLIFIED_API_KEY` in your shell to swap client workspaces.
+
+- **`auth:login <name>`** — save an API key under a profile name and make it active. Prompts for the
+  key with hidden input; `--api-key <key>` (or piping the key on stdin) works non-interactively for CI.
+- **`auth:use <name>`** — switch the active profile.
+- **`auth:list`** — list saved profiles with masked keys, marking the active one.
+- **`auth:logout [name]`** — remove a profile (defaults to the active one).
+- **Global `--api-key <key>` flag** — one-off key override for any command.
+
+Key resolution precedence (highest first): `--api-key` flag → active profile → `SIMPLIFIED_API_KEY`
+env. The **stored profile wins over the env var**, so a stale `SIMPLIFIED_API_KEY` in your shell can
+no longer silently shadow the key you logged in with; when env is set but ignored, a warning shows
+both masked keys. Keys are stored in `~/.simplified/config.json` with `0600` permissions.
+
+- **`auth:whoami`** now prints the active API key on the first line: `🔑 API key: <keyId>.…<tail> (len N) (source: …)`. The key id (the part before the `.`) is shown in full so two keys that share a prefix and suffix remain distinguishable; the secret is masked. `source` reports `flag` / `store "<profile>"` / `env`.
+
 ## [1.3.0] — 2026-06-03
 
 ### Added
