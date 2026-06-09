@@ -48,6 +48,25 @@ saved context → default workspace.
 
 **Agent rule:** when the user names a teamspace, resolve its numeric id with `auth:whoami`
 first, then either pass `--teamspace <id>` per command or set it once with `teamspace:use`.
+A key scoped to a single space returns `403` for other teamspaces; an "all spaces" key reaches
+every teamspace it can access — prefer one of those to work across teamspaces with a single key.
+
+## API key profiles
+
+The API key is read from (highest first): `--api-key` flag → active stored profile →
+`SIMPLIFIED_API_KEY` env. Store keys in the CLI so you don't re-paste tokens or edit env vars:
+
+```bash
+simplified auth:login work        # paste the key (hidden prompt); becomes the active key
+simplified auth:use work          # switch the active profile
+simplified auth:list              # list profiles (masked), * = active
+simplified auth:logout [name]     # remove a profile (defaults to active)
+simplified auth:whoami            # show active key id + source, plus accessible teamspaces
+```
+
+The stored profile **wins over `SIMPLIFIED_API_KEY`** (a warning prints when env is ignored), so a
+stale env key can't silently shadow the one you logged in with. Keys are stored `0600` in
+`~/.simplified/config.json`. For CI, set `SIMPLIFIED_API_KEY` or pass `--api-key`.
 
 ---
 
@@ -55,7 +74,8 @@ first, then either pass `--teamspace <id>` per command or set it once with `team
 
 | Domain | Commands | Reference |
 |---|---|---|
-| **Context** | `auth:whoami`, `teamspace:current`, `teamspace:use`, `teamspace:add`, `teamspace:list`, `teamspace:remove` | (this file — "Teamspace context") |
+| **Auth** | `auth:login`, `auth:use`, `auth:list`, `auth:logout`, `auth:whoami` (global `--api-key`) | (this file — "API key profiles") |
+| **Context** | `teamspace:current`, `teamspace:use`, `teamspace:add`, `teamspace:list`, `teamspace:remove` | (this file — "Teamspace context") |
 | **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
 | **Analytics** | `analytics:range`, `analytics:posts`, `analytics:aggregated`, `analytics:audience` | [ANALYTICS.md](references/ANALYTICS.md) |
 | **Image Tools** | `image:blur-background`, `image:remove-background`, `image:convert`, `image:upscale`, `image:restore`, `image:generative-fill`, `image:outpaint`, `image:magic-inpaint`, `image:pix-to-pix`, `image:replace`, `image:sd-scribble` | [IMAGE_TOOLS.md](references/IMAGE_TOOLS.md) |
@@ -198,7 +218,7 @@ simplified analytics:audience -a 123 --from 2026-03-01 --to 2026-03-13
 
 ## Critical Rules
 
-- **Teamspace scoping.** Use `auth:whoami` to resolve teamspace ids; pass `--teamspace <id>` (or set `teamspace:use`) to scope a command. One token = one workspace — to work across workspaces you need a separate key per workspace. A teamspace the token can't access fails with `403`; a non-numeric id fails with `400`.
+- **Teamspace scoping.** Use `auth:whoami` to resolve teamspace ids; pass `--teamspace <id>` (or set `teamspace:use`) to scope a command. A single "all spaces" key can reach every teamspace it has access to; a key scoped to one space fails with `403` on the others. A non-numeric id fails with `400`.
 - **Analytics `date_to` must never be in the future.** Cap at today when user says "this month" or "last 7 days".
 - **Async image commands** return a `task_id`. Use `--wait` to block until done, or `image:task --id <id>` to poll manually.
 - **Async video commands** return a `task_id`. Use `--wait` to block until done (timeout 300s), or `video:task --id <id>` to poll manually. AI generation commands (`script-to-video`, `text-to-video`) also poll export status when using `--wait`.

@@ -54,6 +54,20 @@ simplified posts:create \
   --date "2026-03-20 09:00"
 ```
 
+### Grouped multi-platform post (`--group`)
+
+By default, posting to multiple accounts creates a *separate* post per account. Add `--group` to
+group 2+ accounts under a single `groupId` instead — one card for the approver, like the web UI.
+The same `message` applies to all accounts (per-platform captions are not supported).
+
+```bash
+simplified posts:create \
+  -c "Launch day across all channels!" \
+  -a "123,456,789" \
+  --action draft \
+  --group
+```
+
 ### Post with media
 
 ```bash
