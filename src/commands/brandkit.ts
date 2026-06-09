@@ -37,7 +37,16 @@ export async function brandkitCreate(args: {
       const extra: Record<string, unknown> = {};
       if (args.description !== undefined) extra.description = args.description;
       if (args['social-links']) {
-        extra.social_links = loadJsonBody({ data: args['social-links'] }) as unknown;
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(args['social-links']);
+        } catch {
+          throw new Error('--social-links must be valid JSON');
+        }
+        if (!Array.isArray(parsed)) {
+          throw new Error('--social-links must be a JSON array of {type,url} objects');
+        }
+        extra.social_links = parsed;
       }
       body = { title: args.title, ...(Object.keys(extra).length > 0 && { extra }) };
     }
