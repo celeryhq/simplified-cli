@@ -28,3 +28,24 @@ describe('request() 204 handling', () => {
     expect(result).toEqual({ id: 'bk_1' });
   });
 });
+
+describe('brand kit URL/query construction', () => {
+  it('getBrandKit encodes expand and injects the Space header', async () => {
+    mockFetchOnce({ ok: true, status: 200, json: async () => ({}), text: async () => '{}' });
+    const api = new SimplifiedAPI({ ...baseConfig, teamspaceId: '42' });
+    await api.getBrandKit('bk_1', { expand: 'extra,website' });
+    const [url, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe('https://api.simplified.com/api/v2/brandkits/bk_1?expand=extra%2Cwebsite');
+    expect((init as RequestInit).headers).toMatchObject({ Space: '42' });
+  });
+
+  it('listContextDocuments forwards canonical_key and ordering as query params', async () => {
+    mockFetchOnce({ ok: true, status: 200, json: async () => ({}), text: async () => '{}' });
+    const api = new SimplifiedAPI(baseConfig);
+    await api.listContextDocuments('bk_1', { canonical_key: 'brand_voice', ordering: '-created' });
+    const [url] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(
+      'https://api.simplified.com/api/v1/brandkit/bk_1/context-documents?canonical_key=brand_voice&ordering=-created'
+    );
+  });
+});

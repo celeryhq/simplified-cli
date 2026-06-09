@@ -546,6 +546,55 @@ export class SimplifiedAPI {
     );
   }
 
+  // ── Brand Kits ────────────────────────────────────────────────────────────
+
+  async listBrandKits(params?: { search?: string }) {
+    return this.request<unknown>('GET', '/api/v2/brandkits', undefined, params as Record<string, string | undefined>);
+  }
+
+  async createBrandKit(data: { title: string; extra?: { description?: string; social_links?: unknown[] } }) {
+    return this.request<unknown>('POST', '/api/v1/brandkit', data);
+  }
+
+  async getBrandBook(brandId: string, params?: { elements?: string }) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/brandbook`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async buildBrandKit(brandId: string, body: Record<string, unknown>) {
+    return this.request<{
+      brand_kit_id?: string;
+      status?: string;
+      version?: number;
+      warnings?: string[];
+    }>('POST', `/api/v2/brandkits/${brandId}/build`, body);
+  }
+
+  async importBrandKitModules(brandId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('PATCH', `/api/v1/brandkit/${brandId}/import-modules`, body);
+  }
+
+  // ── Context Documents ─────────────────────────────────────────────────────
+
+  async listContextDocuments(brandId: string, params?: { canonical_key?: string; search?: string; ordering?: string }) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents`, undefined, params as Record<string, string | undefined>);
+  }
+
+  async createContextDocument(brandId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('POST', `/api/v1/brandkit/${brandId}/context-documents`, body);
+  }
+
+  async updateContextDocument(brandId: string, documentLinkId: string, body: Record<string, unknown>) {
+    return this.request<unknown>('PATCH', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`, body);
+  }
+
+  async deleteContextDocument(brandId: string, documentLinkId: string) {
+    return this.request<unknown>('DELETE', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`);
+  }
+
+  async getContextDocumentByType(brandId: string, contextType: string) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents/by-type/${contextType}`);
+  }
+
   // ── Discovery ─────────────────────────────────────────────────────────────
 
   /**
