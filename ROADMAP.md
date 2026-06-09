@@ -2,6 +2,34 @@
 
 Ideas and improvements that are not yet scheduled. Add new items at the top of the relevant section.
 
+## Release checklist
+
+Bump **all four version locations together** — the npm CLI and the Claude Code plugin share one
+version (e.g. `1.3.1`). They live in two artifacts but must stay in lockstep:
+
+- [ ] `package.json` → `version` (the npm CLI)
+- [ ] `.claude-plugin/plugin.json` → `version`
+- [ ] `.claude-plugin/marketplace.json` → `metadata.version`
+- [ ] `.claude-plugin/marketplace.json` → `plugins[0].version`
+
+Then:
+
+- [ ] Move `CHANGELOG.md` `[Unreleased]` → `[X.Y.Z] — YYYY-MM-DD`
+- [ ] Update the skill if commands/flags changed: `skills/simplified-cli/SKILL.md` (+ `references/`)
+- [ ] `npm run build` and smoke-test (`node dist/index.js --version`)
+- [ ] Commit, open PR → master, merge
+- [ ] From master: `git tag vX.Y.Z && git push origin vX.Y.Z`
+- [ ] `gh release create vX.Y.Z` with notes from the CHANGELOG
+- [ ] `npm publish` (must be authenticated as `jacksimplified`; `prepublishOnly` rebuilds)
+- [ ] Verify: `npm view simplified-cli version` = X.Y.Z
+
+Notes:
+- `skills/` is **not** in the npm tarball (`files: ["dist","README.md","LICENSE"]`); the skill ships
+  via the plugin marketplace from the repo. So a skill-only change does **not** need an `npm publish`,
+  but it **does** need a plugin version bump so clients picking it up via
+  `/plugin marketplace update simplified-cli` actually receive it.
+- Clients update the plugin with `/plugin marketplace update simplified-cli` then `/reload-plugins`.
+
 ## Authentication
 
 ### ✅ `auth:login` command — DONE (Unreleased)
