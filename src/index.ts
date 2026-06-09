@@ -66,6 +66,19 @@ import {
   teamspaceRemove,
 } from './commands/teamspace';
 import { whoami, login, use as authUse, list as authList, logout } from './commands/auth';
+import {
+  brandkitList,
+  brandkitCreate,
+  brandkitGet,
+  brandkitBrandbook,
+  brandkitBuild,
+  brandkitImport,
+  contextList,
+  contextCreate,
+  contextUpdate,
+  contextDelete,
+  contextGet,
+} from './commands/brandkit';
 
 const videoGenerationOptions = (y: Argv) =>
   y
@@ -98,6 +111,13 @@ const videoGenerationOptions = (y: Argv) =>
       default: false,
       description: 'Poll until task completes (including export) and print result',
     });
+
+const CONTEXT_TYPES = [
+  'brand_voice', 'style_guide', 'seo_guidelines', 'internal_links', 'target_keywords',
+  'features', 'competitor_analysis', 'writing_examples', 'cro_best_practices',
+  'company_research', 'brand_profile', 'market_positioning', 'icps', 'usps',
+  'content_pillars', 'marketing_strategy',
+] as const;
 
 const argv = hideBin(process.argv);
 if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
@@ -1037,6 +1057,146 @@ yargs(argv)
     'Remove an API key profile (defaults to the active one)',
     (y: Argv) => y.positional('name', { type: 'string', describe: 'Profile name to remove' }),
     (a) => logout(a.name as string | undefined)
+  )
+
+  // ── Brand Kits ──────────────────────────────────────────────────────────────
+  .command(
+    'brandkit:list',
+    'List brand kits in the workspace',
+    (y: Argv) => y.option('search', { type: 'string', description: 'Filter brand kits by title' }),
+    brandkitList
+  )
+  .command(
+    'brandkit:create',
+    'Create a brand kit (only --title is required)',
+    (y: Argv) =>
+      y
+        .option('title', { type: 'string', description: 'Brand name (required unless --json)' })
+        .option('description', { type: 'string', description: 'Short brand description' })
+        .option('social-links', { type: 'string', description: 'JSON array of {type,url} link objects' })
+        .option('json', { type: 'string', description: 'Path to JSON file with the full body' })
+        .example('$0 brandkit:create --title "Velle Studio"', 'Create a brand kit'),
+    brandkitCreate
+  )
+  .command(
+    'brandkit:get',
+    'Get a brand kit by id',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('expand', { type: 'string', description: 'Comma-separated expansions: extra, website' })
+        .option('fields', { type: 'string', description: 'Comma-separated top-level keys to include' })
+        .option('omit', { type: 'string', description: 'Comma-separated top-level keys to exclude' })
+        .example('$0 brandkit:get --brand <id> --expand extra,website', 'Full brand envelope'),
+    brandkitGet
+  )
+  .command(
+    'brandkit:brandbook',
+    'Get brand book data (optimized for AI/integrations)',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('elements', {
+          type: 'string',
+          description: 'Comma-separated elements (e.g. brief,voices,colors,fonts,logos,usps,icps). Omit for base data only.',
+        })
+        .example('$0 brandkit:brandbook --brand <id> --elements "brief,voices,colors"', 'Selected elements'),
+    brandkitBrandbook
+  )
+  .command(
+    'brandkit:build',
+    'Populate a brand kit with a canonical BrandKitDocument (brand, social_links, style)',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('json', { type: 'string', description: 'Path to JSON file with the document body' })
+        .option('data', { type: 'string', description: 'Inline JSON document body (alternative to --json)' })
+        .example('$0 brandkit:build --brand <id> --json style.json', 'Build from a file'),
+    brandkitBuild
+  )
+  .command(
+    'brandkit:import',
+    'Import brand kit modules (brand_voice, icps, usps, …)',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('json', { type: 'string', description: 'Path to JSON file with module data' })
+        .option('data', { type: 'string', description: 'Inline JSON module data (alternative to --json)' })
+        .example('$0 brandkit:import --brand <id> --json modules.json', 'Import modules from a file'),
+    brandkitImport
+  )
+
+  // ── Brand Context Documents ──────────────────────────────────────────────────
+  .command(
+    'brandkit:context-list',
+    'List context documents linked to a brand kit',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('canonical-key', { type: 'string', description: 'Filter by canonical type key (e.g. brand_voice)' })
+        .option('search', { type: 'string', description: 'Search by document name or type' })
+        .option('ordering', {
+          type: 'string',
+          choices: ['created', '-created', 'modified', '-modified'] as const,
+          description: 'Sort order (default: -modified)',
+        }),
+    contextList
+  )
+  .command(
+    'brandkit:context-create',
+    'Create or link a context document on a brand kit',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('document-id', { type: 'string', description: 'Link an existing KnowledgeDoc by UUID' })
+        .option('doc-type', { type: 'string', description: 'Type key for inline creation (e.g. brand_voice)' })
+        .option('name', { type: 'string', description: 'Document name (inline creation)' })
+        .option('description', { type: 'string', description: 'Document description' })
+        .option('content', { type: 'string', description: 'Markdown content (inline)' })
+        .option('content-file', { type: 'string', description: 'Path to a markdown file (alternative to --content)' })
+        .option('data', { type: 'string', description: 'Inline JSON structured data' })
+        .option('json', { type: 'string', description: 'Path to JSON file with the full body' })
+        .example('$0 brandkit:context-create --brand <id> --doc-type brand_voice --name "Voice" --content-file voice.md', 'Inline creation')
+        .example('$0 brandkit:context-create --brand <id> --document-id <docId>', 'Link an existing doc'),
+    contextCreate
+  )
+  .command(
+    'brandkit:context-update',
+    'Update a linked context document',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('link', { type: 'string', description: 'Context document link UUID', demandOption: true })
+        .option('name', { type: 'string', description: 'New document name' })
+        .option('description', { type: 'string', description: 'New description' })
+        .option('content', { type: 'string', description: 'New markdown content (inline)' })
+        .option('content-file', { type: 'string', description: 'Path to a markdown file (alternative to --content)' })
+        .option('data', { type: 'string', description: 'Inline JSON structured data' })
+        .option('json', { type: 'string', description: 'Path to JSON file with the full body' }),
+    contextUpdate
+  )
+  .command(
+    'brandkit:context-delete',
+    'Delete a context document link from a brand kit',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('link', { type: 'string', description: 'Context document link UUID', demandOption: true }),
+    contextDelete
+  )
+  .command(
+    'brandkit:context-get',
+    'Get a single context document by its canonical type',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('type', {
+          type: 'string',
+          choices: CONTEXT_TYPES,
+          description: 'Canonical type key',
+          demandOption: true,
+        }),
+    contextGet
   )
 
   .demandCommand(1, 'You need to provide a command. Run --help for usage.')
