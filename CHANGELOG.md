@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`posts:list-drafts` / `posts:list` with multiple accounts now return results.** Multi-value
+  `account_ids` were sent as a single comma-joined query param (`account_ids=1,2`), which the API
+  treated as one unknown id and returned an empty list. They are now sent as repeated params
+  (`account_ids=1&account_ids=2`) as the API expects. Single-account calls are unaffected.
+
 ### Added
 
 #### API key profiles (`auth:login`)
