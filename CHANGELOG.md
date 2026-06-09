@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **`posts:create --group`** — when creating a post for 2+ accounts, `--group` sends `group: true`
+  so the API groups them under a single `groupId` (one card in the approver view) instead of
+  creating separate ungrouped posts per account. Without the flag, behavior is unchanged.
+
 #### API key profiles (`auth:login`)
 
 Store multiple named API keys in the CLI and switch between them, mirroring the `teamspace:*` model —

@@ -171,6 +171,10 @@ yargs(argv)
           type: 'string',
           description: 'JSON string with platform-specific settings (see SKILL.md)',
         })
+        .option('group', {
+          type: 'boolean',
+          description: 'Group 2+ accounts into a single grouped post (one card) instead of separate posts',
+        })
         .option('json', {
           alias: 'j',
           type: 'string',
@@ -183,6 +187,10 @@ yargs(argv)
         .example(
           '$0 posts:create -c "Scheduled post" -a "123,456" --action schedule --date "2026-03-15 12:00"',
           'Schedule a post to multiple accounts'
+        )
+        .example(
+          '$0 posts:create -c "Multi-platform" -a "123,456" --action draft --group',
+          'Create one grouped draft across accounts'
         )
         .example('$0 posts:create --json campaign.json', 'Create post from JSON file'),
     createPost

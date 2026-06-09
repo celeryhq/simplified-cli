@@ -32,6 +32,8 @@ export interface CreatePostRequest {
   date?: string;
   media?: string[];
   additional?: Record<string, unknown>;
+  /** When true with 2+ account_ids, the API groups the posts under one groupId (one card). */
+  group?: boolean;
 }
 
 export interface AnalyticsRangeRequest {
