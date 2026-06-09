@@ -1,5 +1,10 @@
 import { SimplifiedConfig } from './config';
 
+/** Split a comma-separated id list into an array so it is sent as repeated query params. */
+function splitIds(input: string): string[] {
+  return input.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
 export const ASSET_TYPES = {
   image: 0,
   video: 2,
@@ -27,6 +32,8 @@ export interface CreatePostRequest {
   date?: string;
   media?: string[];
   additional?: Record<string, unknown>;
+  /** When true with 2+ account_ids, the API groups the posts under one groupId (one card). */
+  group?: boolean;
 }
 
 export interface AnalyticsRangeRequest {
@@ -119,14 +126,19 @@ export class SimplifiedAPI {
     method: string,
     path: string,
     body?: unknown,
-    queryParams?: Record<string, string | number | undefined>
+    queryParams?: Record<string, string | number | string[] | undefined>
   ): Promise<T> {
     let url = `${this.apiUrl}${path}`;
 
     if (queryParams) {
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(queryParams)) {
-        if (value !== undefined) {
+        if (value === undefined) continue;
+        // Arrays are sent as repeated params (key=a&key=b), which is what the API expects for
+        // multi-value filters like account_ids — NOT a single comma-joined value (key=a,b).
+        if (Array.isArray(value)) {
+          for (const item of value) params.append(key, String(item));
+        } else {
           params.append(key, String(value));
         }
       }
@@ -187,11 +199,12 @@ export class SimplifiedAPI {
     search?: string;
     query?: string;
   }) {
+    const { account_ids, ...rest } = params;
     return this.request<unknown>(
       'GET',
       '/api/v1/service/social-media/get-posts',
       undefined,
-      params as Record<string, string | number | undefined>
+      { ...rest, account_ids: splitIds(account_ids) }
     );
   }
 
@@ -204,11 +217,12 @@ export class SimplifiedAPI {
     order_by?: string;
     order?: string;
   }) {
+    const { account_ids, ...rest } = params;
     return this.request<unknown>(
       'GET',
       '/api/v1/service/social-media/get-drafts',
       undefined,
-      params as Record<string, string | number | undefined>
+      { ...rest, account_ids: splitIds(account_ids) }
     );
   }
 

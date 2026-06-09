@@ -8,6 +8,10 @@ export interface Store {
   currentTeamspace?: string;
   /** Saved alias -> teamspace id mappings. */
   teamspaces?: Record<string, string>;
+  /** Saved profile name -> API key. */
+  apiKeys?: Record<string, string>;
+  /** Active API key profile name. */
+  currentApiKey?: string;
 }
 
 export function storeDir(): string {
@@ -30,14 +34,19 @@ export function readStore(): Store {
   }
 }
 
-/** Write the store atomically (temp file + rename) so an interrupted write cannot corrupt it. */
+/**
+ * Write the store atomically (temp file + rename) so an interrupted write cannot corrupt it.
+ * The file is written with mode 0600 because it can hold API keys (secrets).
+ */
 export function writeStore(store: Store): void {
   const dir = storeDir();
   fs.mkdirSync(dir, { recursive: true });
   const tmp = path.join(dir, `config.json.${randomUUID()}.tmp`);
-  fs.writeFileSync(tmp, JSON.stringify(store, null, 2), 'utf8');
+  fs.writeFileSync(tmp, JSON.stringify(store, null, 2), { encoding: 'utf8', mode: 0o600 });
   try {
     fs.renameSync(tmp, storePath());
+    // Tighten perms even if the destination already existed with looser bits.
+    fs.chmodSync(storePath(), 0o600);
   } catch (err) {
     try { fs.unlinkSync(tmp); } catch { /* best-effort cleanup */ }
     throw err;

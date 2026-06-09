@@ -24,6 +24,14 @@ export function setTeamspaceOverride(value?: string): void {
   teamspaceOverride = value;
 }
 
+// Set from the global --api-key flag by the yargs middleware in index.ts.
+let apiKeyOverride: string | undefined;
+
+/** Set the --api-key flag override. MUST be called (by the yargs middleware) before getConfig()/getApiKeyInfo(). */
+export function setApiKeyOverride(value?: string): void {
+  apiKeyOverride = value;
+}
+
 /**
  * Resolve the active teamspace from (highest first): flag, env, store.currentTeamspace.
  * The literal "default" (or empty) means "default workspace" -> teamspaceId undefined.
@@ -67,16 +75,73 @@ export function getResolvedTeamspace(): ResolvedTeamspace {
   });
 }
 
+/** Where the active API key was resolved from. */
+export type ApiKeySource = 'flag' | 'store' | 'env';
+
+export interface ApiKeyInfo {
+  key: string;
+  source: ApiKeySource;
+  /** Active profile name, when the key came from the store. */
+  profile?: string;
+}
+
+/**
+ * Resolve the active API key from (highest first): --api-key flag, active store profile, env var.
+ * The store profile deliberately wins over the env var so a logged-in user is not silently
+ * overridden by a stale `SIMPLIFIED_API_KEY` left in the shell. Returns undefined when none is set.
+ */
+export function getApiKeyInfo(store: Store = readStore()): ApiKeyInfo | undefined {
+  if (apiKeyOverride) return { key: apiKeyOverride, source: 'flag' };
+
+  const profile = store.currentApiKey;
+  if (profile && store.apiKeys?.[profile]) {
+    return { key: store.apiKeys[profile], source: 'store', profile };
+  }
+
+  const env = process.env.SIMPLIFIED_API_KEY;
+  if (env) return { key: env, source: 'env' };
+
+  return undefined;
+}
+
+/**
+ * Mask an API key for safe display while still uniquely identifying it.
+ * Simplified keys are `<keyId>.<secret>`; the keyId before the dot is a public identifier,
+ * so we show it in full and mask only the secret. Two different keys that share a prefix and
+ * suffix (which fooled a plain head/tail mask once) differ in their keyId, so this catches them.
+ */
+export function maskApiKey(key: string): string {
+  const dot = key.indexOf('.');
+  if (dot > 0) {
+    return `${key.slice(0, dot)}.…${key.slice(-4)} (len ${key.length})`;
+  }
+  // Unknown format: reveal only the extremes.
+  return `${key.slice(0, 4)}…${key.slice(-4)} (len ${key.length})`;
+}
+
 export function getConfig(): SimplifiedConfig {
-  const apiKey = process.env.SIMPLIFIED_API_KEY;
-  if (!apiKey) {
-    console.error('❌ SIMPLIFIED_API_KEY environment variable is required');
+  const info = getApiKeyInfo();
+  if (!info) {
+    console.error('❌ No API key configured.');
+    console.error('   Log in: simplified auth:login <name>');
+    console.error('   or set the SIMPLIFIED_API_KEY environment variable.');
     console.error('   Get your API key from: https://simplified.com → Settings → API Keys');
     process.exit(1);
   }
 
+  // Warn when an env key exists but is being ignored in favor of the active profile, so a stale
+  // SIMPLIFIED_API_KEY in the shell can never silently shadow the key the user logged in with.
+  const env = process.env.SIMPLIFIED_API_KEY;
+  if (info.source === 'store' && env && env !== info.key) {
+    console.error(
+      `⚠️  SIMPLIFIED_API_KEY is set (${maskApiKey(env)}) but ignored — ` +
+        `using profile "${info.profile}" (${maskApiKey(info.key)}). ` +
+        `Run "simplified auth:logout" to fall back to the env var.`
+    );
+  }
+
   return {
-    apiKey,
+    apiKey: info.key,
     apiUrl: process.env.SIMPLIFIED_API_URL || 'https://api.simplified.com',
     teamspaceId: getResolvedTeamspace().teamspaceId,
   };

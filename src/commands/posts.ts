@@ -172,6 +172,7 @@ export async function createPost(args: {
   date?: string;
   media?: string;
   additional?: string;
+  group?: boolean;
 }) {
   const config = getConfig();
   const api = new SimplifiedAPI(config);
@@ -220,6 +221,7 @@ export async function createPost(args: {
       ...(args.date && { date: args.date }),
       ...(mediaUrls && { media: mediaUrls }),
       ...(additional && { additional }),
+      ...(args.group && { group: true }),
     };
   }
 
