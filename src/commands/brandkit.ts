@@ -91,3 +91,112 @@ export async function brandkitImport(args: { brand: string; json?: string; data?
     process.exit(1);
   }
 }
+
+export async function contextList(args: {
+  brand: string;
+  'canonical-key'?: string;
+  search?: string;
+  ordering?: string;
+}) {
+  await run('list context documents', (api) =>
+    api.listContextDocuments(args.brand, {
+      canonical_key: args['canonical-key'],
+      search: args.search,
+      ordering: args.ordering,
+    })
+  );
+}
+
+export async function contextCreate(args: {
+  brand: string;
+  'document-id'?: string;
+  'doc-type'?: string;
+  name?: string;
+  description?: string;
+  content?: string;
+  'content-file'?: string;
+  data?: string;
+  json?: string;
+}) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    let body: Record<string, unknown>;
+    if (args.json) {
+      body = loadJsonBody({ json: args.json });
+    } else {
+      // Two creation modes: link an existing doc (document-id) XOR inline (doc-type + name).
+      requireXor('--document-id', args['document-id'], '--doc-type', args['doc-type']);
+      if (args['document-id']) {
+        body = { document_id: args['document-id'] };
+      } else {
+        if (!args.name) throw new Error('--name is required for inline creation (with --doc-type)');
+        const content = readContent(args.content, args['content-file']);
+        body = {
+          doc_type: args['doc-type'],
+          name: args.name,
+          ...(args.description !== undefined && { description: args.description }),
+          ...(content !== undefined && { content }),
+          ...(args.data && { data: loadJsonBody({ data: args.data }) }),
+        };
+      }
+    }
+    const result = await api.createContextDocument(args.brand, body);
+    console.log(JSON.stringify(result, null, 2));
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`❌ Failed to create context document: ${msg}`);
+    process.exit(1);
+  }
+}
+
+export async function contextUpdate(args: {
+  brand: string;
+  link: string;
+  name?: string;
+  description?: string;
+  content?: string;
+  'content-file'?: string;
+  data?: string;
+  json?: string;
+}) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    let body: Record<string, unknown>;
+    if (args.json) {
+      body = loadJsonBody({ json: args.json });
+    } else {
+      const content = readContent(args.content, args['content-file']);
+      body = {
+        ...(args.name !== undefined && { name: args.name }),
+        ...(args.description !== undefined && { description: args.description }),
+        ...(content !== undefined && { content }),
+        ...(args.data && { data: loadJsonBody({ data: args.data }) }),
+      };
+      if (Object.keys(body).length === 0) {
+        throw new Error('Provide at least one field to update (--name, --description, --content, --content-file, --data, or --json)');
+      }
+    }
+    const result = await api.updateContextDocument(args.brand, args.link, body);
+    console.log(JSON.stringify(result, null, 2));
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`❌ Failed to update context document: ${msg}`);
+    process.exit(1);
+  }
+}
+
+export async function contextDelete(args: { brand: string; link: string }) {
+  const api = new SimplifiedAPI(getConfig());
+  try {
+    await api.deleteContextDocument(args.brand, args.link);
+    console.log('✅ Context document deleted');
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`❌ Failed to delete context document: ${msg}`);
+    process.exit(1);
+  }
+}
+
+export async function contextGet(args: { brand: string; type: string }) {
+  await run('get context document', (api) => api.getContextDocumentByType(args.brand, args.type));
+}
