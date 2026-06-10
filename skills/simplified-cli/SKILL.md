@@ -50,6 +50,8 @@ saved context → default workspace.
 first, then either pass `--teamspace <id>` per command or set it once with `teamspace:use`.
 A key scoped to a single space returns `403` for other teamspaces; an "all spaces" key reaches
 every teamspace it can access — prefer one of those to work across teamspaces with a single key.
+Create one in Settings → API Keys with **Space** set to "Workspace-wide (all spaces)" (single-space
+keys can't be upgraded in place).
 
 ## API key profiles
 

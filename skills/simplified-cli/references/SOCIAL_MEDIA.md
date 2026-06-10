@@ -68,6 +68,9 @@ simplified posts:create \
   --group
 ```
 
+`--group` also works with `--json` (it sets `group: true` on the payload), and you can equivalently
+add `"group": true` directly inside the JSON file — see the JSON example below.
+
 ### Post with media
 
 ```bash
@@ -106,6 +109,7 @@ JSON structure:
   "action": "schedule",
   "date": "2026-03-20 09:00",
   "media": ["https://example.com/image.jpg"],
+  "group": true,
   "additional": {
     "instagram": { "postType": { "value": "post" }, "channel": { "value": "direct" } },
     "facebook": { "postType": { "value": "post" } },
@@ -113,6 +117,9 @@ JSON structure:
   }
 }
 ```
+
+`"group": true` is optional — include it (or pass `--group`) to group 2+ accounts under one
+`groupId`; omit it for a separate post per account.
 
 ### Platform-specific settings (`--additional`)
 
