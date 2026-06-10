@@ -32,7 +32,9 @@ export async function whoami(): Promise<void> {
     }
     console.log('');
     console.log('   Pass --teamspace <id> or run "simplified teamspace:use <id>" to scope commands.');
-    console.log('   Note: one Api-Key is bound to one workspace; use a separate key per workspace.');
+    console.log('   Note: by default an Api-Key is bound to a single workspace and 403s on others.');
+    console.log('   To use one key across all teamspaces, create a key with Space set to');
+    console.log('   "Workspace-wide (all spaces)" in Settings → API Keys, then auth:login with it.');
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     // Discovery is implemented but may not be deployed everywhere yet; treat "not found" as "not available yet".
