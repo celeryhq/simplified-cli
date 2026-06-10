@@ -480,6 +480,12 @@ simplified <command> --help
 
 Full documentation: [simplified.readme.io/reference/introduction](https://simplified.readme.io/reference/introduction)
 
+## About
+
+Simplified CLI is built by [Simplified](https://astro.simplified.com/) — **the agentic OS for marketing**. Riley, the marketing agent, drafts on-brand content, learns your voice, queues it for approval, and publishes on schedule across every channel. The CLI brings that same agentic, JSON-native automation to your terminal and AI workflows.
+
+Learn more at [astro.simplified.com](https://astro.simplified.com/).
+
 ## License
 
 MIT
