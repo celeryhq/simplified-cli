@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] — 2026-06-10
+
+### Fixed
+
+- **`posts:create --group` now works on the `--json` (`-j`) path.** Previously `--group` was
+  silently ignored when the payload came from a JSON file, producing separate ungrouped drafts.
+  The flag is now honored on both paths, and a `"group": true` field inside the JSON file is
+  honored on its own as well.
+
+### Changed
+
+- **`auth:whoami`** now points to creating a **Workspace-wide (all spaces)** API key (Settings →
+  API Keys) for cross-teamspace access, instead of suggesting a separate key per workspace.
+
+---
+
 ## [1.4.0] — 2026-06-09
 
 ### Added
