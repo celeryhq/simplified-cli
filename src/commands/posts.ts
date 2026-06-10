@@ -6,6 +6,16 @@ function parseCommaSeparated(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Merge the --group flag into a post payload. Grouping is enabled when the flag is set OR
+ * the payload already carries `group: true`, so it works the same whether the payload was
+ * built from individual flags or loaded from a -j JSON file. Returns a new object; never
+ * mutates the input.
+ */
+export function withGroupFlag(postData: CreatePostRequest, groupFlag?: boolean): CreatePostRequest {
+  return groupFlag || postData.group ? { ...postData, group: true } : postData;
+}
+
 export async function listPosts(args: {
   accounts: string;
   page?: number;
@@ -221,9 +231,12 @@ export async function createPost(args: {
       ...(args.date && { date: args.date }),
       ...(mediaUrls && { media: mediaUrls }),
       ...(additional && { additional }),
-      ...(args.group && { group: true }),
     };
   }
+
+  // Honor --group on both paths (flag branch and -j JSON payload). On the -j path this also
+  // preserves a `"group": true` already present in the file.
+  postData = withGroupFlag(postData, args.group);
 
   try {
     const result = await api.createPost(postData);
