@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.2] — 2026-06-10
+
+### Added
+
+- **AI Video Generation (`ai-video:*`)**: `ai-video:generate`, `ai-video:status`, and
+  `ai-video:models` — generate videos from text prompts or reference images using V2 models
+  (Google Veo, OpenAI Sora, Kling, ByteDance Seedance, MiniMax Hailuo, WAN). Common flags plus a
+  `--parameters` JSON escape hatch for model-specific fields; `--wait` polls the job to
+  completion (30s interval). The existing `video:*` commands (processing and the legacy
+  `video:script-to-video` / `video:text-to-video` narrated generation) are unchanged.
+
+---
+
 ## [1.4.1] — 2026-06-10
 
 ### Fixed
