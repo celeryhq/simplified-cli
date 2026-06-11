@@ -27,6 +27,7 @@ import {
   getAnalyticsAggregated,
   getAnalyticsAudience,
 } from './commands/analytics';
+import { createReviewBundle, addDraftsToReviewBundle } from './commands/reviewbundle';
 import {
   blurBackground,
   convertImageFormat,
@@ -354,6 +355,60 @@ yargs(argv)
           description: 'Comma-separated media URLs (pass empty string to clear)',
         }),
     updateDraft
+  )
+
+  // ── Review Bundle: Create ──────────────────────────────────────────────────
+  .command(
+    'review-bundle:create',
+    'Create a social media review bundle, optionally seeded with drafts',
+    (y: Argv) =>
+      y
+        .option('title', {
+          alias: 't',
+          type: 'string',
+          description: 'Review bundle title',
+          demandOption: true,
+        })
+        .option('description', {
+          type: 'string',
+          description: 'Optional description shown to reviewers',
+        })
+        .option('draft-ids', {
+          type: 'string',
+          description: 'Comma-separated draft IDs to seed the bundle with',
+        })
+        .example(
+          '$0 review-bundle:create -t "April campaign — round 1"',
+          'Create an empty review bundle'
+        )
+        .example(
+          '$0 review-bundle:create -t "April campaign" --draft-ids "draft-1,draft-2"',
+          'Create a bundle seeded with drafts'
+        ),
+    createReviewBundle
+  )
+
+  // ── Review Bundle: Add Drafts ──────────────────────────────────────────────
+  .command(
+    'review-bundle:add-drafts',
+    'Add drafts to an existing review bundle',
+    (y: Argv) =>
+      y
+        .option('bundle-id', {
+          type: 'string',
+          description: 'ID of the existing review bundle',
+          demandOption: true,
+        })
+        .option('draft-ids', {
+          type: 'string',
+          description: 'Comma-separated draft IDs to add (at least one)',
+          demandOption: true,
+        })
+        .example(
+          '$0 review-bundle:add-drafts --bundle-id "abc123" --draft-ids "draft-3,draft-4"',
+          'Append drafts to a bundle'
+        ),
+    addDraftsToReviewBundle
   )
 
   // ── Analytics: Range ───────────────────────────────────────────────────────

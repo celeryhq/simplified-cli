@@ -264,6 +264,52 @@ simplified posts:update-draft --draft-id "d_abc123" --date "2026-04-01" --time "
 
 ---
 
+## `review-bundle:create`
+
+Group social media drafts into a shareable **review bundle** so collaborators or clients can approve content before it is scheduled or published. The response includes a `linkToReview` (alias `reviewUrl`) you can share with reviewers. Draft IDs come from `posts:list-drafts`.
+
+```bash
+# Empty bundle (add drafts later)
+simplified review-bundle:create -t "Q2 social drafts"
+
+# Seed with drafts on creation
+simplified review-bundle:create \
+  -t "April campaign — round 1" \
+  --description "Please review captions before scheduling." \
+  --draft-ids "draft-1,draft-2"
+```
+
+**Options:**
+
+| Flag | Description |
+|---|---|
+| `--title` / `-t` | *(required)* Bundle title (max 255 chars) |
+| `--description` | Optional description shown to reviewers |
+| `--draft-ids` | Comma-separated draft IDs to seed the bundle with (optional) |
+
+**Response fields:** `id` (alias `packageId`), `title`, `description`, `drafts` (IDs in the bundle), `reviewUrl` / `linkToReview`.
+
+---
+
+## `review-bundle:add-drafts`
+
+Append drafts to an existing review bundle without recreating it. Idempotent — a draft already in the bundle is silently skipped, not duplicated. Returns the updated bundle.
+
+```bash
+simplified review-bundle:add-drafts \
+  --bundle-id "abc123" \
+  --draft-ids "draft-3,draft-4"
+```
+
+**Options:**
+
+| Flag | Description |
+|---|---|
+| `--bundle-id` | *(required)* ID of the existing review bundle |
+| `--draft-ids` | *(required)* Comma-separated draft IDs to add (at least one) |
+
+---
+
 ## Platform constraints
 
 | Platform | Char limit | Notes |

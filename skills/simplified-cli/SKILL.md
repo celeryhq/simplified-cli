@@ -78,7 +78,7 @@ stale env key can't silently shadow the one you logged in with. Keys are stored 
 |---|---|---|
 | **Auth** | `auth:login`, `auth:use`, `auth:list`, `auth:logout`, `auth:whoami` (global `--api-key`) | (this file — "API key profiles") |
 | **Context** | `teamspace:current`, `teamspace:use`, `teamspace:add`, `teamspace:list`, `teamspace:remove` | (this file — "Teamspace context") |
-| **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
+| **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft`, `review-bundle:create`, `review-bundle:add-drafts` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
 | **Analytics** | `analytics:range`, `analytics:posts`, `analytics:aggregated`, `analytics:audience` | [ANALYTICS.md](references/ANALYTICS.md) |
 | **Image Tools** | `image:blur-background`, `image:remove-background`, `image:convert`, `image:upscale`, `image:restore`, `image:generative-fill`, `image:outpaint`, `image:magic-inpaint`, `image:pix-to-pix`, `image:replace`, `image:sd-scribble` | [IMAGE_TOOLS.md](references/IMAGE_TOOLS.md) |
 | **Video Tools** | `video:add-b-rolls`, `video:convert`, `video:merge`, `video:remove-audio`, `video:reverse`, `video:script-to-video`, `video:text-to-video`, `video:speedup`, `video:task` | [VIDEO_TOOLS.md](references/VIDEO_TOOLS.md) |
@@ -134,6 +134,21 @@ simplified posts:update-draft --draft-id "<draft_id>" -c "Polished copy"
 
 # Delete drafts
 simplified posts:delete-draft --draft-ids "<id1>,<id2>"
+```
+
+### Send drafts for review (review bundle)
+```bash
+# 1. List drafts to collect their IDs
+simplified posts:list-drafts --accounts "<account_id>"
+
+# 2. Bundle them into a shareable review (returns a linkToReview URL)
+simplified review-bundle:create -t "April campaign — round 1" \
+  --description "Please review captions before scheduling." \
+  --draft-ids "<draft_id_1>,<draft_id_2>"
+
+# 3. Append more drafts to the same bundle later (idempotent — duplicates skipped)
+simplified review-bundle:add-drafts --bundle-id "<bundle_id_from_step_2>" \
+  --draft-ids "<draft_id_3>,<draft_id_4>"
 ```
 
 ### Process image then post

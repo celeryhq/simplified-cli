@@ -245,6 +245,22 @@ export class SimplifiedAPI {
     );
   }
 
+  async createReviewBundle(data: { title: string; description?: string; draft_ids?: string[] }) {
+    return this.request<unknown>(
+      'POST',
+      '/api/v1/service/social-media/review-bundle/create',
+      data
+    );
+  }
+
+  async addDraftsToReviewBundle(data: { bundle_id: string; draft_ids: string[] }) {
+    return this.request<unknown>(
+      'POST',
+      '/api/v1/service/social-media/review-bundle/add-drafts',
+      data
+    );
+  }
+
   async deletePost(data: { group_id?: string; post_schedule_id?: string }) {
     return this.request<unknown>('POST', '/api/v1/service/social-media/delete-post', data);
   }

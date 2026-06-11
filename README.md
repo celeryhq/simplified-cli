@@ -218,6 +218,21 @@ simplified posts:delete-draft --draft-ids "DRAFT_ID_1,DRAFT_ID_2"
 simplified posts:delete-draft --group-id "GROUP_ID"
 ```
 
+#### Review bundles
+
+Group drafts into a shareable bundle so collaborators or clients can approve content before it is scheduled or published. The response includes a `linkToReview` URL to share with reviewers. Draft IDs come from `posts:list-drafts`.
+
+```bash
+# Create an empty bundle
+simplified review-bundle:create -t "April campaign — round 1"
+
+# Create a bundle seeded with drafts
+simplified review-bundle:create -t "April campaign" --description "Please review captions." --draft-ids "DRAFT_ID_1,DRAFT_ID_2"
+
+# Append more drafts to an existing bundle (idempotent — duplicates are skipped)
+simplified review-bundle:add-drafts --bundle-id "BUNDLE_ID" --draft-ids "DRAFT_ID_3,DRAFT_ID_4"
+```
+
 ---
 
 ### Social Media Analytics & Performance Tracking

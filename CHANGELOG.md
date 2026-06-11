@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] — 2026-06-11
+
+### Added
+
+- **Social Media Review Bundles (`review-bundle:*`)**: `review-bundle:create` and
+  `review-bundle:add-drafts` — group social media drafts into a shareable review bundle so
+  collaborators or clients can approve content before it is scheduled or published.
+  `review-bundle:create` makes a bundle (optionally seeded with `--draft-ids`) and returns its
+  `linkToReview` URL; `review-bundle:add-drafts` appends drafts to an existing bundle and is
+  idempotent (drafts already present are skipped, not duplicated).
+
+---
+
 ## [1.4.2] — 2026-06-10
 
 ### Added
