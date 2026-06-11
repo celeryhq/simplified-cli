@@ -160,6 +160,28 @@ simplified posts:create -c "Watch our latest video!" -a "<account_id>" --action 
   --media "<result_url_from_step_1>"
 ```
 
+### Generate AI video (V2 models: Veo, Sora, Kling) then post
+```bash
+# 1. Discover models and capabilities
+simplified ai-video:models
+
+# 2. Generate a video and wait (storage=asset persists a reusable asset)
+simplified ai-video:generate \
+  --model veo-3-fast \
+  --prompt "Drone shot over a neon city at night, cinematic" \
+  --aspect-ratio 16:9 --resolution 1080p --duration 8 \
+  --storage asset --wait
+
+# 3. Use the returned file_url in a post
+simplified posts:create -c "Our latest reel!" -a "<account_id>" --action add_to_queue \
+  --media "<file_url_from_step_2>"
+
+# Check status manually (needs BOTH ids returned by generate)
+simplified ai-video:status --art-id "<id>" --id "<art_variation_id>"
+```
+See [AI_VIDEO.md](references/AI_VIDEO.md) for the full option list. Distinct from
+the legacy `video:script-to-video` (AI narrated/presenter video) above.
+
 ### Process video (convert, merge, speedup)
 ```bash
 # Convert format
@@ -228,4 +250,6 @@ simplified analytics:audience -a 123 --from 2026-03-01 --to 2026-03-13
 - **Async video commands** return a `task_id`. Use `--wait` to block until done (timeout 300s), or `video:task --id <id>` to poll manually. AI generation commands (`script-to-video`, `text-to-video`) also poll export status when using `--wait`.
 - **AI image generation** is async — returns `art_variation_id`. Use `--wait` to block until done (timeout 180s), or `ai-image:status --id <art_variation_id>` to poll manually. When done, outputs an array of `{ asset_id, url }`.
 - **AI image models** — use `ai-image:models` to discover available models, capabilities, supported parameters, and credits per image before generating.
+- **AI video generation (V2)** is async — `ai-video:generate` returns `id` (art) and `art_variation_id` (variation). Use `--wait` to block until done (30s poll, 600s timeout), or `ai-video:status --art-id <id> --id <art_variation_id>` to poll manually (it needs BOTH ids). When done, the `output` holds `file_url` and the asset `id`.
+- **AI video models** — run `ai-video:models` first: model ids (`veo-3`, `sora-2`, `kling-*`, …), capabilities, and valid durations/resolutions/aspect ratios are model-specific. File-typed fields take asset UUIDs, not raw URLs.
 - **Platform-specific settings** for posts (reels, stories, TikTok privacy, YouTube title, etc.) go in `--additional` JSON — see [PLATFORM_GUIDE.md](references/PLATFORM_GUIDE.md).

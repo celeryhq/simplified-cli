@@ -55,7 +55,8 @@ import {
   speedupVideo,
   getVideoTask,
 } from './commands/video';
-import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS } from './api';
+import { VIDEO_OUTPUT_FORMATS, VIDEO_TONES, VIDEO_FORMATS, VIDEO_GEN_CAPABILITIES, VIDEO_STORAGE_MODES } from './api';
+import { generateAiVideo, getAiVideoStatus, listAiVideoModels } from './commands/aivideo';
 import { uploadAsset, importAsset, getAsset } from './commands/assets';
 import { setApiKeyOverride, setTeamspaceOverride } from './config';
 import {
@@ -825,6 +826,95 @@ yargs(argv)
         .example('$0 ai-image:models --capability prompt', 'Only text-to-image models')
         .example('$0 ai-image:models --model-id flux.flux-realism --capability prompt', 'Full field definitions'),
     listAiImageModels
+  )
+
+  // ── AI Video Generation (V2) ──────────────────────────────────────────────
+  .command(
+    'ai-video:generate',
+    'Generate an AI video from a prompt or reference image (Veo, Sora, Kling, etc.)',
+    (y: Argv) =>
+      y
+        .option('model', {
+          type: 'string',
+          description: 'Model ID (e.g. veo-3, veo-3.1, sora-2, kling-v2.5-turbo-pro). Run ai-video:models to list.',
+          demandOption: true,
+        })
+        .option('capability', {
+          type: 'string',
+          // Not restricted via choices: capabilities are per-model and the backend validates.
+          description: `Generation mode (per-model): ${VIDEO_GEN_CAPABILITIES.join(' | ')}`,
+          default: 'prompt',
+        })
+        .option('prompt', {
+          type: 'string',
+          description: 'Text description of the video to generate',
+          demandOption: true,
+        })
+        .option('aspect-ratio', { type: 'string', description: 'Aspect ratio (e.g. 16:9, 9:16, 1:1)' })
+        .option('duration', { type: 'number', description: 'Video length in seconds (model-specific, e.g. 4/6/8)' })
+        .option('resolution', { type: 'string', description: 'Resolution (model-specific, e.g. 720p, 1080p)' })
+        .option('negative-prompt', { type: 'string', description: 'What NOT to include in the video' })
+        .option('reference-images', {
+          type: 'string',
+          description: 'Comma-separated asset UUIDs (for reference_image / multiple_images / first_last_frame)',
+        })
+        .option('generate-audio', { type: 'boolean', description: 'Generate audio track (model-specific)' })
+        .option('parameters', {
+          type: 'string',
+          description: 'JSON of extra model-specific parameters, merged over the flags (e.g. \'{"first_frame_url":"<uuid>"}\')',
+        })
+        .option('storage', {
+          type: 'string',
+          choices: VIDEO_STORAGE_MODES,
+          description: 'asset = persist a reusable asset; transient = temporary; default = gallery',
+        })
+        .option('wait', {
+          type: 'boolean',
+          default: false,
+          description: 'Poll until generation completes and print the output (file_url, asset id)',
+        })
+        .example(
+          '$0 ai-video:generate --model veo-3-fast --prompt "drone shot over a neon city at night" --aspect-ratio 16:9 --duration 8 --storage asset --wait',
+          'Text to video'
+        )
+        .example(
+          '$0 ai-video:generate --model veo-3.1 --capability first_last_frame --prompt "morph between scenes" --parameters \'{"first_frame_url":"<uuid>","last_frame_url":"<uuid>"}\' --wait',
+          'First/last frame video'
+        ),
+    generateAiVideo
+  )
+
+  .command(
+    'ai-video:status',
+    'Check the status of an AI video generation job',
+    (y: Argv) =>
+      y
+        .option('art-id', {
+          type: 'string',
+          description: 'The "id" returned by ai-video:generate (the art id)',
+          demandOption: true,
+        })
+        .option('id', {
+          type: 'string',
+          description: 'The "art_variation_id" returned by ai-video:generate (the variation id)',
+          demandOption: true,
+        }),
+    getAiVideoStatus
+  )
+
+  .command(
+    'ai-video:models',
+    'List available AI video models with capabilities and per-model fields',
+    (y: Argv) =>
+      y
+        .option('model-id', { type: 'string', description: 'Filter to one model (e.g. veo-3)' })
+        .option('capability', {
+          type: 'string',
+          description: `Show the full field schema for this capability: ${VIDEO_GEN_CAPABILITIES.join(' | ')}`,
+        })
+        .example('$0 ai-video:models', 'List all video models')
+        .example('$0 ai-video:models --model-id veo-3 --capability prompt', 'Full field definitions for a model'),
+    listAiVideoModels
   )
 
   // ── Video Tools ──────────────────────────────────────────────────────────

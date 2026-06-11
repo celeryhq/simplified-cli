@@ -65,6 +65,16 @@ export type VideoTone = (typeof VIDEO_TONES)[number];
 export const VIDEO_FORMATS = ['youtube-shorts', 'youtube-video', 'instagram-post-video', 'mp4'] as const;
 export type VideoFormat = (typeof VIDEO_FORMATS)[number];
 
+// V2 AI video generation. Capabilities are per-model (the backend validates),
+// so this list is for help text only — do NOT use it to hard-restrict input.
+export const VIDEO_GEN_CAPABILITIES = [
+  'prompt', 'reference_image', 'multiple_images', 'first_last_frame',
+] as const;
+export type VideoGenCapability = (typeof VIDEO_GEN_CAPABILITIES)[number];
+
+export const VIDEO_STORAGE_MODES = ['default', 'transient', 'asset'] as const;
+export type VideoStorageMode = (typeof VIDEO_STORAGE_MODES)[number];
+
 export interface TaskProgressResponse {
   status: string;
   info?: unknown;
@@ -472,6 +482,47 @@ export class SimplifiedAPI {
       'POST',
       '/api/v1/service/ai-image/generate',
       params
+    );
+  }
+
+  // ── AI Video Generation (V2) ──────────────────────────────────────────────
+
+  async generateVideoV2(params: {
+    model: string;
+    capability: string;
+    parameters: Record<string, unknown>;
+    storage?: VideoStorageMode;
+  }) {
+    return this.request<{
+      task_id: string;
+      id: string;
+      art_variation_id: string;
+      storage?: string;
+    }>('POST', '/api/v1/ai-imageart/ai-generate-video-v2', params);
+  }
+
+  async getVideoVariation(artId: string, variationId: string) {
+    return this.request<{
+      id: string;
+      job_status: 'CREATED' | 'PENDING' | 'PROCESSING' | 'RENDERING' | 'UPDATED' | 'DONE' | 'FAILED';
+      modified?: string;
+      output?: { id?: string; file_url?: string; thumbnail_cover_image?: string; thumbnail?: string };
+      payload?: { errors?: unknown };
+    }>('GET', `/api/v1/ai/video/${artId}/variations/${variationId}`);
+  }
+
+  /**
+   * Discover generation models and their per-(model, capability) field schema.
+   * The endpoint serves both engine types via `type`. With no model_id it lists
+   * every engine; with model_id + capability it returns the full field schema
+   * (labels, field_type, enum_values, defaults, required flags).
+   */
+  async getModelFields(params: { type: 'image' | 'video'; model_id?: string; capability?: string }) {
+    return this.request<unknown>(
+      'GET',
+      '/api/v1/ai/image/model-fields',
+      undefined,
+      params as Record<string, string | undefined>
     );
   }
 

@@ -312,6 +312,49 @@ simplified ai-image:status --id "ART_VARIATION_ID"
 
 ---
 
+### AI Video Generation
+
+Generate videos from text prompts or reference images using state-of-the-art models (Google Veo, OpenAI Sora, Kling, ByteDance Seedance, MiniMax Hailuo, WAN). Model ids, capabilities, and valid parameter values are model-specific — discover them with `ai-video:models`.
+
+```bash
+# Discover available video models and their fields
+simplified ai-video:models
+simplified ai-video:models --model-id veo-3 --capability prompt
+
+# Generate from a text prompt (wait for result)
+simplified ai-video:generate \
+  --model veo-3-fast \
+  --prompt "Drone shot over a neon city at night, cinematic" \
+  --aspect-ratio 16:9 --resolution 1080p --duration 8 \
+  --storage asset \
+  --wait
+
+# First/last-frame interpolation (file-typed fields take asset UUIDs)
+simplified ai-video:generate \
+  --model veo-3.1 --capability first_last_frame \
+  --prompt "smooth morph between the two scenes" \
+  --parameters '{"first_frame_url":"ASSET_UUID","last_frame_url":"ASSET_UUID"}' \
+  --wait
+
+# Check generation status manually (needs BOTH ids returned by generate)
+simplified ai-video:status --art-id "ART_ID" --id "ART_VARIATION_ID"
+```
+
+**Async workflow:**
+- Without `--wait`: returns `{ task_id, id, art_variation_id, storage }` immediately
+- With `--wait`: polls every 30s (timeout: 600s), prints the output (`file_url`, asset `id`) on completion
+- Manual poll: `simplified ai-video:status --art-id <id> --id <art_variation_id>` (the V2 video poll needs both ids)
+
+**Capabilities:** `prompt` · `reference_image` · `multiple_images` · `first_last_frame` (per-model — check `ai-video:models`)
+
+**Available models:** `veo-3` · `veo-3.1` · `sora-2` · `sora-2-pro` · `kling-v2.5-turbo-pro` · `bytedance-seedance-2` · `minimax-hailuo-02-pro` · `wan-2.5-preview` · and more — run `ai-video:models` for the full list.
+
+> Distinct from `video:script-to-video` / `video:text-to-video`, which generate AI **narrated/presenter-style** video (script → voiced, captioned clip) and remain under the `video:*` namespace.
+
+Full reference: [`skills/simplified-cli/references/AI_VIDEO.md`](skills/simplified-cli/references/AI_VIDEO.md)
+
+---
+
 ### Asset Management
 
 Upload local files or import remote URLs as persistent workspace assets. Useful for feeding images and videos into posts, AI workflows, or project items.

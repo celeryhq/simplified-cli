@@ -117,6 +117,41 @@ export async function pollAiImageStatus(
   throw new Error(`Generation timed out after ${timeoutMs / 1000}s`);
 }
 
+// V2 AI video generation is webhook-driven (no usable task_id); poll the
+// variation row. Jobs run ~1-2 min, so a 30s interval keeps calls low.
+export const AI_VIDEO_POLL_INTERVAL_MS = 30_000;
+export const AI_VIDEO_POLL_TIMEOUT_MS = 600_000;
+
+export async function pollAiVideoStatus(
+  api: SimplifiedAPI,
+  artId: string,
+  variationId: string,
+  timeoutMs: number = AI_VIDEO_POLL_TIMEOUT_MS
+): Promise<unknown> {
+  const start = Date.now();
+  process.stderr.write(`⏳ Generating video — waiting for completion`);
+
+  while (Date.now() - start < timeoutMs) {
+    await new Promise((r) => setTimeout(r, AI_VIDEO_POLL_INTERVAL_MS));
+    process.stderr.write('.');
+
+    const status = await api.getVideoVariation(artId, variationId);
+
+    if (status.job_status === 'DONE') {
+      process.stderr.write(' ✅\n');
+      return status.output ?? status;
+    }
+
+    if (status.job_status === 'FAILED') {
+      process.stderr.write(' ❌\n');
+      throw new Error(`Generation failed: ${JSON.stringify(status.payload?.errors ?? 'unknown error')}`);
+    }
+  }
+
+  process.stderr.write(' ⌛ timed out\n');
+  throw new Error(`Generation timed out after ${timeoutMs / 1000}s`);
+}
+
 export async function submitAndMaybeWaitWithExport(
   api: SimplifiedAPI,
   action: () => Promise<{ task_id: string }>,
