@@ -1,6 +1,6 @@
 {
   "name": "simplified-cli",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Social media automation CLI for Simplified.com — publish to 10 platforms simultaneously, analyze performance, process images and videos, and generate AI images and videos from the command line.",
   "author": {
     "name": "Simplified",
