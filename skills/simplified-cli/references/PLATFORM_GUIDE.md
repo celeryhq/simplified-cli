@@ -199,6 +199,62 @@ No `additional` settings required.
 
 ---
 
+## Mastodon
+
+No `additional` settings required. Character limit is **500**.
+
+---
+
+## Reddit
+
+Like every other network, Reddit goes under its own key in the `additional` object, with a nested
+`post` object (same pattern as `google.post` / `youtube.post`). The `post.targets` array needs at
+least one target, and each target requires `subreddit`, `title`, and `type`.
+
+```json
+"reddit": {
+  "post": {
+    "targets": [
+      {
+        "subreddit": "devtestsmp",
+        "title": "test",
+        "type": "self",
+        "flairId": null,
+        "flairText": null,
+        "nsfw": false,
+        "url": null
+      }
+    ]
+  }
+}
+```
+
+| Field | Values | Required | Notes |
+|---|---|---|---|
+| `post.targets` | array | Yes | At least one target (one per subreddit) |
+| `post.targets[].subreddit` | string | Yes | Subreddit name (without `r/`) |
+| `post.targets[].title` | string | Yes | Post title |
+| `post.targets[].type` | `self` \| `link` | Yes | `self` = text post, `link` = link post (`url` required) |
+| `post.targets[].url` | URL | For `type: link` | Target URL for link posts |
+| `post.targets[].flairId` | string | No | Subreddit flair ID (`null` if none) |
+| `post.targets[].flairText` | string | No | Flair text (`null` if none) |
+| `post.targets[].nsfw` | boolean | No | Mark the post NSFW (default `false`) |
+
+**Post to multiple subreddits at once** by adding more entries to `post.targets`:
+
+```json
+"reddit": {
+  "post": {
+    "targets": [
+      { "subreddit": "devtestsmp", "title": "test", "type": "self" },
+      { "subreddit": "dobrytest", "title": "dobry test", "type": "self" }
+    ]
+  }
+}
+```
+
+---
+
 ## Multi-platform example
 
 ```bash
@@ -223,7 +279,14 @@ simplified posts:create --json campaign.json
     "linkedin": {
       "audience": { "value": "PUBLIC" }
     },
-    "bluesky": {}
+    "bluesky": {},
+    "reddit": {
+      "post": {
+        "targets": [
+          { "subreddit": "devtestsmp", "title": "New product launch!", "type": "self" }
+        ]
+      }
+    }
   }
 }
 ```

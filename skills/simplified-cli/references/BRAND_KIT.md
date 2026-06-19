@@ -270,11 +270,28 @@ simplified brandkit:context-delete --brand <uuid> --link <linkUUID>
 
 ### `brandkit:context-get`
 
+Get a single context document by its link UUID. The `--link` value may be either the
+context-document link UUID (the `BrandKitContextDocument` junction id returned by
+`brandkit:context-list`) OR the underlying KnowledgeDoc UUID — the server resolves either form.
+
+```bash
+simplified brandkit:context-get --brand <uuid> --link <linkUUID>
+```
+
+| Option | Type | Required | Description |
+|---|---|---|---|
+| `--brand` | string | Yes | Brand kit UUID |
+| `--link` | string | Yes | Context document link UUID or underlying KnowledgeDoc UUID |
+
+---
+
+### `brandkit:context-get-by-type`
+
 Get a single context document by its canonical type.
 
 ```bash
-simplified brandkit:context-get --brand <uuid> --type brand_voice
-simplified brandkit:context-get --brand <uuid> --type seo_guidelines
+simplified brandkit:context-get-by-type --brand <uuid> --type brand_voice
+simplified brandkit:context-get-by-type --brand <uuid> --type seo_guidelines
 ```
 
 | Option | Type | Required | Description |

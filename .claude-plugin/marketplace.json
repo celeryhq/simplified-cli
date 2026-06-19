@@ -5,15 +5,15 @@
     "email": "support@simplified.com"
   },
   "metadata": {
-    "description": "Social media automation CLI for Simplified.com — publish to 10 platforms, generate AI images and videos from the command line",
-    "version": "1.5.0"
+    "description": "Social media automation CLI for Simplified.com — publish to 12 platforms, generate AI images and videos from the command line",
+    "version": "1.6.0"
   },
   "plugins": [
     {
       "name": "simplified-cli",
       "source": "./",
-      "version": "1.5.0",
-      "description": "Publish to 10 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
+      "version": "1.6.0",
+      "description": "Publish to 12 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
       "author": {
         "name": "Simplified",
         "email": "support@simplified.com"
@@ -23,7 +23,7 @@
       "license": "MIT",
       "keywords": ["social-media", "scheduling", "analytics", "publishing", "cli", "ai-image", "video"],
       "category": "social-media",
-      "tags": ["facebook", "instagram", "tiktok", "youtube", "linkedin", "pinterest", "threads", "bluesky"]
+      "tags": ["facebook", "instagram", "tiktok", "youtube", "linkedin", "pinterest", "threads", "bluesky", "mastodon", "reddit"]
     }
   ]
 }

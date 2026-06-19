@@ -658,6 +658,10 @@ export class SimplifiedAPI {
     return this.request<unknown>('DELETE', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`);
   }
 
+  async getContextDocument(brandId: string, documentLinkId: string) {
+    return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents/${documentLinkId}`);
+  }
+
   async getContextDocumentByType(brandId: string, contextType: string) {
     return this.request<unknown>('GET', `/api/v1/brandkit/${brandId}/context-documents/by-type/${contextType}`);
   }

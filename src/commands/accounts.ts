@@ -12,6 +12,8 @@ const VALID_NETWORKS = [
   'google',
   'bluesky',
   'tiktokBusiness',
+  'mastodon',
+  'reddit',
 ] as const;
 
 export async function listAccounts(args: { network?: string }) {

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] — 2026-06-19
+
+### Added
+
+- **Two new social networks: Mastodon and Reddit.** `accounts:list --network mastodon` /
+  `--network reddit` now resolve, and both are valid targets for publishing — bringing the total to
+  12 supported platforms.
+- **`brandkit:context-get`**: fetch a single context document by its link UUID (the
+  `BrandKitContextDocument` junction id) or by the underlying KnowledgeDoc UUID — the server
+  resolves either form. Wraps the `getContextDocument` API operation
+  (`GET /api/v1/brandkit/{brand}/context-documents/{link}`).
+
+### Changed
+
+- **BREAKING — `brandkit:context-get` renamed to `brandkit:context-get-by-type`.** The
+  canonical-type lookup (`getContextDocumentByType`) now lives under `context-get-by-type`, freeing
+  `context-get` for the by-id lookup above. Update any scripts that called `context-get --type ...`
+  to `context-get-by-type --type ...`.
+
+---
+
 ## [1.5.0] — 2026-06-11
 
 ### Added
