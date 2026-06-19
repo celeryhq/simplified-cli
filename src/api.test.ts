@@ -48,4 +48,13 @@ describe('brand kit URL/query construction', () => {
       'https://api.simplified.com/api/v1/brandkit/bk_1/context-documents?canonical_key=brand_voice&ordering=-created'
     );
   });
+
+  it('getContextDocument GETs a single document by its link/KnowledgeDoc id', async () => {
+    mockFetchOnce({ ok: true, status: 200, json: async () => ({}), text: async () => '{}' });
+    const api = new SimplifiedAPI(baseConfig);
+    await api.getContextDocument('bk_1', 'link_9');
+    const [url, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe('https://api.simplified.com/api/v1/brandkit/bk_1/context-documents/link_9');
+    expect((init as RequestInit).method).toBe('GET');
+  });
 });

@@ -17,7 +17,7 @@ simplified accounts:list --network instagram
 simplified accounts:list --network tiktok
 ```
 
-**Valid networks:** `facebook` | `instagram` | `linkedin` | `tiktok` | `tiktokBusiness` | `youtube` | `pinterest` | `threads` | `google` | `bluesky`
+**Valid networks:** `facebook` | `instagram` | `linkedin` | `tiktok` | `tiktokBusiness` | `youtube` | `pinterest` | `threads` | `google` | `bluesky` | `mastodon` | `reddit`
 
 **Response fields:** `id` (use this in posts/analytics), `name`, `type`
 
@@ -323,3 +323,5 @@ simplified review-bundle:add-drafts \
 | Google Business | 1500 | No video support |
 | Facebook | 2200 | Optional `postType` (post / reel / story) |
 | Threads | 500 | Optional `channel` (direct / reminder) |
+| Mastodon | 500 | No `additional` required |
+| Reddit | — | Requires `additional.reddit.post.targets` with ≥1 entry (`subreddit` + `title` + `type`) — see [PLATFORM_GUIDE.md](PLATFORM_GUIDE.md#reddit) |

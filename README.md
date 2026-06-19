@@ -1,13 +1,13 @@
 # Simplified CLI — Social Media Automation for AI Agents
 
-![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-10-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
+![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-12-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
 
 
-Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 10 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
+Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 12 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
 
 ## What is Simplified CLI?
 
-Simplified CLI is an open-source social media automation tool that lets AI agents and developers schedule posts, pull analytics, and generate AI images across 10 platforms (Instagram, TikTok, LinkedIn, YouTube, and more) — entirely from the command line.
+Simplified CLI is an open-source social media automation tool that lets AI agents and developers schedule posts, pull analytics, and generate AI images across 12 platforms (Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, and more) — entirely from the command line.
 
 ## Why Simplified CLI?
 
@@ -146,7 +146,7 @@ simplified accounts:list
 simplified accounts:list --network instagram
 ```
 
-**Supported platforms:** `facebook` · `instagram` · `linkedin` · `tiktok` · `tiktokBusiness` · `youtube` · `pinterest` · `threads` · `google` · `bluesky`
+**Supported platforms:** `facebook` · `instagram` · `linkedin` · `tiktok` · `tiktokBusiness` · `youtube` · `pinterest` · `threads` · `google` · `bluesky` · `mastodon` · `reddit`
 
 **Response key fields:** `id` (use in `--accounts` / `-a`), `name`, `type` (platform name)
 
@@ -415,17 +415,20 @@ simplified brandkit:brandbook --brand <uuid> --elements "brief,voices,colors,fon
 # Attach a context document
 simplified brandkit:context-create --brand <uuid> --doc-type brand_voice --name "Voice" --content-file voice.md
 
+# Get a single context document by its link UUID (or underlying KnowledgeDoc UUID)
+simplified brandkit:context-get --brand <uuid> --link <uuid>
+
 # Get a specific context document by canonical type
-simplified brandkit:context-get --brand <uuid> --type seo_guidelines
+simplified brandkit:context-get-by-type --brand <uuid> --type seo_guidelines
 ```
 
 **Brand kit commands:** `brandkit:list` · `brandkit:create` · `brandkit:get` · `brandkit:brandbook` · `brandkit:build` · `brandkit:import`
 
-**Brand context commands:** `brandkit:context-list` · `brandkit:context-create` · `brandkit:context-update` · `brandkit:context-delete` · `brandkit:context-get`
+**Brand context commands:** `brandkit:context-list` · `brandkit:context-create` · `brandkit:context-update` · `brandkit:context-delete` · `brandkit:context-get` · `brandkit:context-get-by-type`
 
 **`--elements` values:** `voices` · `colors` · `fonts` · `logos` · `cover` · `description` · `social_links` · `assets` · `videos` · `knowledge` · `captions` · `brief` · `comprehensive` · `brand_icps` · `usps` · `products` · `competitors` · `content_pillars`
 
-**`brandkit:context-get --type` values:** `brand_voice` · `style_guide` · `seo_guidelines` · `internal_links` · `target_keywords` · `features` · `competitor_analysis` · `writing_examples` · `cro_best_practices` · `company_research` · `brand_profile` · `market_positioning` · `icps` · `usps` · `content_pillars` · `marketing_strategy`
+**`brandkit:context-get-by-type --type` values:** `brand_voice` · `style_guide` · `seo_guidelines` · `internal_links` · `target_keywords` · `features` · `competitor_analysis` · `writing_examples` · `cro_best_practices` · `company_research` · `brand_profile` · `market_positioning` · `icps` · `usps` · `content_pillars` · `marketing_strategy`
 
 ---
 
@@ -509,13 +512,13 @@ simplified analytics:audience   -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 ## FAQ
 
 **What is Simplified CLI used for?**
-Simplified CLI is a command-line tool for social media automation — scheduling posts, pulling analytics, processing images, and generating AI images across 10 platforms including Instagram, TikTok, LinkedIn, YouTube, and Bluesky.
+Simplified CLI is a command-line tool for social media automation — scheduling posts, pulling analytics, processing images, and generating AI images across 12 platforms including Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, and Bluesky.
 
 **Is Simplified CLI suitable for AI agents?**
 Yes. All commands output JSON to stdout and return non-zero exit codes on failure, making it fully compatible with LLM tool use, agentic pipelines, and automation scripts.
 
 **Which social media platforms are supported?**
-Facebook, Instagram, LinkedIn, TikTok, TikTok Business, YouTube, Pinterest, Threads, Google Business, and Bluesky.
+Facebook, Instagram, LinkedIn, TikTok, TikTok Business, YouTube, Pinterest, Threads, Google Business, Bluesky, Mastodon, and Reddit.
 
 **Does it support AI image generation?**
 Yes. The `ai-image:generate` command supports 20+ models including Flux, Google Imagen 4, OpenAI, Recraft, Ideogram, and Stability Diffusion.

@@ -206,6 +206,10 @@ export async function contextDelete(args: { brand: string; link: string }) {
   }
 }
 
-export async function contextGet(args: { brand: string; type: string }) {
+export async function contextGet(args: { brand: string; link: string }) {
+  await run('get context document', (api) => api.getContextDocument(args.brand, args.link));
+}
+
+export async function contextGetByType(args: { brand: string; type: string }) {
   await run('get context document', (api) => api.getContextDocumentByType(args.brand, args.type));
 }

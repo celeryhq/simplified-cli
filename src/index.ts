@@ -80,6 +80,7 @@ import {
   contextUpdate,
   contextDelete,
   contextGet,
+  contextGetByType,
 } from './commands/brandkit';
 import {
   projectsList,
@@ -166,7 +167,7 @@ yargs(argv)
         alias: 'n',
         type: 'string',
         description:
-          'Filter by platform: facebook | instagram | linkedin | tiktok | tiktokBusiness | youtube | pinterest | threads | google | bluesky',
+          'Filter by platform: facebook | instagram | linkedin | tiktok | tiktokBusiness | youtube | pinterest | threads | google | bluesky | mastodon | reddit',
       }),
     listAccounts
   )
@@ -1344,6 +1345,19 @@ yargs(argv)
   )
   .command(
     'brandkit:context-get',
+    'Get a single context document by its link UUID or KnowledgeDoc UUID',
+    (y: Argv) =>
+      y
+        .option('brand', { type: 'string', description: 'Brand kit UUID', demandOption: true })
+        .option('link', {
+          type: 'string',
+          description: 'Context document link UUID or underlying KnowledgeDoc UUID',
+          demandOption: true,
+        }),
+    contextGet
+  )
+  .command(
+    'brandkit:context-get-by-type',
     'Get a single context document by its canonical type',
     (y: Argv) =>
       y
@@ -1354,7 +1368,7 @@ yargs(argv)
           description: 'Canonical type key',
           demandOption: true,
         }),
-    contextGet
+    contextGetByType
   )
 
   // ── Projects ──────────────────────────────────────────────────────────────
