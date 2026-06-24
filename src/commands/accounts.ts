@@ -14,6 +14,7 @@ const VALID_NETWORKS = [
   'tiktokBusiness',
   'mastodon',
   'reddit',
+  'telegram',
 ] as const;
 
 export async function listAccounts(args: { network?: string }) {

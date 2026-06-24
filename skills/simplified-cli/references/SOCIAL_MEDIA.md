@@ -17,7 +17,7 @@ simplified accounts:list --network instagram
 simplified accounts:list --network tiktok
 ```
 
-**Valid networks:** `facebook` | `instagram` | `linkedin` | `tiktok` | `tiktokBusiness` | `youtube` | `pinterest` | `threads` | `google` | `bluesky` | `mastodon` | `reddit`
+**Valid networks:** `facebook` | `instagram` | `linkedin` | `tiktok` | `tiktokBusiness` | `youtube` | `pinterest` | `threads` | `google` | `bluesky` | `mastodon` | `reddit` | `telegram`
 
 **Response fields:** `id` (use this in posts/analytics), `name`, `type`
 
@@ -95,6 +95,32 @@ simplified posts:create \
   --action draft
 ```
 
+### Auto-comments (first comment)
+
+Add comments that are posted automatically after the post publishes — handy for the common
+"link in first comment" pattern. Comments are processed in array order; `delay` is the number of
+seconds to wait after publishing (default `0`).
+
+Single first comment with `--comment`:
+```bash
+simplified posts:create \
+  -c "Our new launch!" \
+  -a "123" \
+  --action add_to_queue \
+  --comment "Link in first comment 👇 https://example.com"
+```
+
+Multiple comments with delays via `--comments` (JSON array; wins over `--comment`):
+```bash
+simplified posts:create \
+  -c "Big news!" \
+  -a "123" \
+  --action add_to_queue \
+  --comments '[{"message":"Thanks for reading! 🙌","delay":0},{"message":"Follow for more.","delay":120}]'
+```
+
+In a `--json` file, use the `comments` field (see the JSON example below).
+
 ### Complex post from JSON file
 
 ```bash
@@ -109,6 +135,10 @@ JSON structure:
   "action": "schedule",
   "date": "2026-03-20 09:00",
   "media": ["https://example.com/image.jpg"],
+  "comments": [
+    { "message": "Link in first comment 👇", "delay": 0 },
+    { "message": "Follow for more updates.", "delay": 120 }
+  ],
   "group": true,
   "additional": {
     "instagram": { "postType": { "value": "post" }, "channel": { "value": "direct" } },
@@ -325,3 +355,4 @@ simplified review-bundle:add-drafts \
 | Threads | 500 | Optional `channel` (direct / reminder) |
 | Mastodon | 500 | No `additional` required |
 | Reddit | — | Requires `additional.reddit.post.targets` with ≥1 entry (`subreddit` + `title` + `type`) — see [PLATFORM_GUIDE.md](PLATFORM_GUIDE.md#reddit) |
+| Telegram | 4096 | No `additional` required |

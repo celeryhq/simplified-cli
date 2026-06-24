@@ -3,11 +3,11 @@
 ![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-12-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
 
 
-Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 12 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
+Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 13 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
 
 ## What is Simplified CLI?
 
-Simplified CLI is an open-source social media automation tool that lets AI agents and developers schedule posts, pull analytics, and generate AI images across 12 platforms (Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, and more) — entirely from the command line.
+Simplified CLI is an open-source social media automation tool that lets AI agents and developers schedule posts, pull analytics, and generate AI images across 13 platforms (Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, Telegram, and more) — entirely from the command line.
 
 ## Why Simplified CLI?
 
@@ -146,7 +146,7 @@ simplified accounts:list
 simplified accounts:list --network instagram
 ```
 
-**Supported platforms:** `facebook` · `instagram` · `linkedin` · `tiktok` · `tiktokBusiness` · `youtube` · `pinterest` · `threads` · `google` · `bluesky` · `mastodon` · `reddit`
+**Supported platforms:** `facebook` · `instagram` · `linkedin` · `tiktok` · `tiktokBusiness` · `youtube` · `pinterest` · `threads` · `google` · `bluesky` · `mastodon` · `reddit` · `telegram`
 
 **Response key fields:** `id` (use in `--accounts` / `-a`), `name`, `type` (platform name)
 
@@ -464,6 +464,7 @@ simplified projects:export --type pm --project <projectId> --partner-id 42 --ite
 | Platform | Char limit | Key requirement |
 |---|---|---|
 | Bluesky | 300 | No `additional` required |
+| Telegram | 4096 | No `additional` required |
 | Threads | 500 | Optional `channel` (direct / reminder) |
 | Pinterest | 500 | Always requires ≥ 1 image in `--media` |
 | Google Business | 1500 | No video support |
@@ -512,13 +513,13 @@ simplified analytics:audience   -a ACCOUNT_ID --from 2026-03-01 --to 2026-03-19
 ## FAQ
 
 **What is Simplified CLI used for?**
-Simplified CLI is a command-line tool for social media automation — scheduling posts, pulling analytics, processing images, and generating AI images across 12 platforms including Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, and Bluesky.
+Simplified CLI is a command-line tool for social media automation — scheduling posts, pulling analytics, processing images, and generating AI images across 13 platforms including Instagram, TikTok, LinkedIn, YouTube, Mastodon, Reddit, Telegram, and Bluesky.
 
 **Is Simplified CLI suitable for AI agents?**
 Yes. All commands output JSON to stdout and return non-zero exit codes on failure, making it fully compatible with LLM tool use, agentic pipelines, and automation scripts.
 
 **Which social media platforms are supported?**
-Facebook, Instagram, LinkedIn, TikTok, TikTok Business, YouTube, Pinterest, Threads, Google Business, Bluesky, Mastodon, and Reddit.
+Facebook, Instagram, LinkedIn, TikTok, TikTok Business, YouTube, Pinterest, Threads, Google Business, Bluesky, Mastodon, Reddit, and Telegram.
 
 **Does it support AI image generation?**
 Yes. The `ai-image:generate` command supports 20+ models including Flux, Google Imagen 4, OpenAI, Recraft, Ideogram, and Stability Diffusion.

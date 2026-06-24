@@ -1,9 +1,43 @@
 import { readFileSync } from 'fs';
 import { getConfig } from '../config';
-import { SimplifiedAPI, CreatePostRequest } from '../api';
+import { SimplifiedAPI, CreatePostRequest, PostComment } from '../api';
 
 function parseCommaSeparated(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Build the `comments` array for a post from CLI flags.
+ *
+ * `--comments` takes a JSON array of `{ message, delay? }` objects for full control and, when
+ * present, wins over `--comment`. `--comment` is a convenience for a single first comment
+ * (delay 0). Returns undefined when neither flag is set so the field is omitted from the payload.
+ *
+ * Throws on malformed input so the caller can surface a clear error and exit.
+ */
+export function buildComments(commentsJson?: string, singleComment?: string): PostComment[] | undefined {
+  if (commentsJson !== undefined) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(commentsJson);
+    } catch {
+      throw new Error('--comments must be valid JSON (an array of { "message", "delay" } objects)');
+    }
+    if (!Array.isArray(parsed)) {
+      throw new Error('--comments must be a JSON array of { "message", "delay" } objects');
+    }
+    return parsed.map((c, i) => {
+      if (typeof c !== 'object' || c === null || typeof (c as PostComment).message !== 'string') {
+        throw new Error(`--comments[${i}] must be an object with a string "message"`);
+      }
+      const { message, delay } = c as PostComment;
+      return delay !== undefined ? { message, delay } : { message };
+    });
+  }
+  if (singleComment !== undefined) {
+    return [{ message: singleComment }];
+  }
+  return undefined;
 }
 
 /**
@@ -181,6 +215,8 @@ export async function createPost(args: {
   action?: string;
   date?: string;
   media?: string;
+  comment?: string;
+  comments?: string;
   additional?: string;
   group?: boolean;
 }) {
@@ -224,12 +260,21 @@ export async function createPost(args: {
       }
     }
 
+    let comments: PostComment[] | undefined;
+    try {
+      comments = buildComments(args.comments, args.comment);
+    } catch (e: unknown) {
+      console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(1);
+    }
+
     postData = {
       message: args.content,
       account_ids: accountIds,
       action: args.action as CreatePostRequest['action'],
       ...(args.date && { date: args.date }),
       ...(mediaUrls && { media: mediaUrls }),
+      ...(comments && { comments }),
       ...(additional && { additional }),
     };
   }

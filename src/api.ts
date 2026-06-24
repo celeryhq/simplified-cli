@@ -25,12 +25,22 @@ export interface AssetSignResponse {
   bucket_name: string;
 }
 
+/** An auto-comment posted after the post publishes. Comments are processed in array order. */
+export interface PostComment {
+  /** The comment text. */
+  message: string;
+  /** Seconds to wait after the post is published before adding this comment (default 0). */
+  delay?: number;
+}
+
 export interface CreatePostRequest {
   message: string;
   account_ids: string[];
   action: 'schedule' | 'add_to_queue' | 'draft';
   date?: string;
   media?: string[];
+  /** Auto-comments added after publishing (e.g. "link in first comment"). Processed in order. */
+  comments?: PostComment[];
   additional?: Record<string, unknown>;
   /** When true with 2+ account_ids, the API groups the posts under one groupId (one card). */
   group?: boolean;
