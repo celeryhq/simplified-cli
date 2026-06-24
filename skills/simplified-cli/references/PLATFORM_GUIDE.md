@@ -255,6 +255,12 @@ least one target, and each target requires `subreddit`, `title`, and `type`.
 
 ---
 
+## Telegram
+
+No `additional` settings required. Character limit is **4096**.
+
+---
+
 ## Multi-platform example
 
 ```bash

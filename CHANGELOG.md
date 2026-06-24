@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] — 2026-06-24
+
+### Added
+
+- **New social network: Telegram.** `accounts:list --network telegram` now resolves, and Telegram
+  is a valid publishing target — bringing the total to 13 supported platforms. No `additional`
+  config is required (like Bluesky and Mastodon).
+- **Auto-comments on `posts:create`.** Add comments that publish automatically after the post (the
+  common "link in first comment" pattern). Use `--comment "<text>"` for a single first comment, or
+  `--comments '[{"message":"...","delay":0}]'` (delay in seconds) for full control; `--json`
+  payloads accept the same `comments` array. Maps to the `comments` field on the create API.
+
 ## [1.6.0] — 2026-06-19
 
 ### Added

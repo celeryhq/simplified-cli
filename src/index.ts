@@ -167,7 +167,7 @@ yargs(argv)
         alias: 'n',
         type: 'string',
         description:
-          'Filter by platform: facebook | instagram | linkedin | tiktok | tiktokBusiness | youtube | pinterest | threads | google | bluesky | mastodon | reddit',
+          'Filter by platform: facebook | instagram | linkedin | tiktok | tiktokBusiness | youtube | pinterest | threads | google | bluesky | mastodon | reddit | telegram',
       }),
     listAccounts
   )
@@ -203,6 +203,14 @@ yargs(argv)
           type: 'string',
           description: 'Comma-separated public media URLs (max 10)',
         })
+        .option('comment', {
+          type: 'string',
+          description: 'A single auto-comment added after the post publishes (e.g. "link in first comment")',
+        })
+        .option('comments', {
+          type: 'string',
+          description: 'JSON array of auto-comments: [{"message":"...","delay":0}] (delay in seconds; wins over --comment)',
+        })
         .option('additional', {
           type: 'string',
           description: 'JSON string with platform-specific settings (see SKILL.md)',
@@ -227,6 +235,10 @@ yargs(argv)
         .example(
           '$0 posts:create -c "Multi-platform" -a "123,456" --action draft --group',
           'Create one grouped draft across accounts'
+        )
+        .example(
+          '$0 posts:create -c "New post!" -a "123" --action add_to_queue --comment "Link in first comment 👇"',
+          'Add a first auto-comment'
         )
         .example('$0 posts:create --json campaign.json', 'Create post from JSON file'),
     createPost
