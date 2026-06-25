@@ -1,6 +1,6 @@
 # Simplified CLI — Social Media Automation for AI Agents
 
-![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-12-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
+![npm](https://img.shields.io/npm/v/simplified-cli) ![license](https://img.shields.io/npm/l/simplified-cli) ![platforms](https://img.shields.io/badge/platforms-13-blue) [![docs](https://img.shields.io/badge/docs-simplified.readme.io-blue)](https://simplified.readme.io/reference/introduction)
 
 
 Agentic social media automation CLI for [Simplified.com](https://simplified.com). Schedule and publish to 13 platforms simultaneously, analyze performance, process images, and generate AI images with 20+ models — JSON-native output designed for AI agents, LLM workflows, and automated pipelines.
@@ -16,7 +16,7 @@ Simplified CLI is an open-source social media automation tool that lets AI agent
 | AI image generation | ✅ 20+ models | ❌ | ❌ |
 | Agentic / LLM-ready (JSON output) | ✅ | ⚠️ partial | ⚠️ partial |
 | Video tools | ✅ | ❌ | ❌ |
-| Platforms | 10 | 6 | 10 |
+| Platforms | 13 | 6 | 10 |
 | Open source CLI | ✅ | ❌ | ❌ |
 | Claude Code plugin | ✅ | ❌ | ❌ |
 
