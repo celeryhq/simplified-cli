@@ -41,6 +41,28 @@ export function parseMediaJson(input: string): MediaItem[] {
 }
 
 /**
+ * Resolve the media payload from the two mutually-exclusive flags. `--media-json` wins over
+ * `--media` when both are present (reported via `mediaIgnored` so the caller can warn).
+ *
+ * `clearOnEmpty` distinguishes the update path (an empty-but-present `--media` clears media by
+ * sending `[]`) from the create path (an empty `--media` is simply omitted).
+ */
+export function resolveMedia(
+  media: string | undefined,
+  mediaJson: string | undefined,
+  opts: { clearOnEmpty: boolean }
+): { value?: MediaItem[]; mediaIgnored: boolean } {
+  if (mediaJson) {
+    return { value: parseMediaJson(mediaJson), mediaIgnored: Boolean(media) };
+  }
+  if (opts.clearOnEmpty) {
+    const value = media !== undefined ? (media ? parseCommaSeparated(media) : []) : undefined;
+    return { value, mediaIgnored: false };
+  }
+  return { value: media ? parseCommaSeparated(media) : undefined, mediaIgnored: false };
+}
+
+/**
  * Build the `comments` array for a post from CLI flags.
  *
  * `--comments` takes a JSON array of `{ message, delay? }` objects for full control and, when

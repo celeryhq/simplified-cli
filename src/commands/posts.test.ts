@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { withGroupFlag, buildComments, parseMediaJson } from './posts';
+import { withGroupFlag, buildComments, parseMediaJson, resolveMedia } from './posts';
 import { CreatePostRequest } from '../api';
 
 const base: CreatePostRequest = {
@@ -116,5 +116,52 @@ describe('parseMediaJson', () => {
 
   it('throws on an element that is neither a string nor an object', () => {
     expect(() => parseMediaJson('[5]')).toThrow(/string or.*object/);
+  });
+});
+
+describe('resolveMedia', () => {
+  it('uses --media (comma-separated) when only it is given', () => {
+    expect(resolveMedia('a,b', undefined, { clearOnEmpty: false })).toEqual({
+      value: ['a', 'b'],
+      mediaIgnored: false,
+    });
+  });
+
+  it('uses --media-json when only it is given', () => {
+    expect(
+      resolveMedia(undefined, '[{"url":"v","thumbUrl":"t"}]', { clearOnEmpty: false })
+    ).toEqual({ value: [{ url: 'v', thumbUrl: 't' }], mediaIgnored: false });
+  });
+
+  it('lets --media-json win over --media and flags it as ignored', () => {
+    expect(resolveMedia('a,b', '["c"]', { clearOnEmpty: false })).toEqual({
+      value: ['c'],
+      mediaIgnored: true,
+    });
+  });
+
+  it('omits media when neither flag is given (create path)', () => {
+    expect(resolveMedia(undefined, undefined, { clearOnEmpty: false })).toEqual({
+      value: undefined,
+      mediaIgnored: false,
+    });
+  });
+
+  it('clears media on empty --media when clearOnEmpty is true (update path)', () => {
+    expect(resolveMedia('', undefined, { clearOnEmpty: true })).toEqual({
+      value: [],
+      mediaIgnored: false,
+    });
+  });
+
+  it('omits media when --media is absent even with clearOnEmpty (update path)', () => {
+    expect(resolveMedia(undefined, undefined, { clearOnEmpty: true })).toEqual({
+      value: undefined,
+      mediaIgnored: false,
+    });
+  });
+
+  it('propagates parseMediaJson errors', () => {
+    expect(() => resolveMedia(undefined, 'not json', { clearOnEmpty: false })).toThrow(/valid JSON/);
   });
 });
