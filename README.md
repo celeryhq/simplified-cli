@@ -172,6 +172,10 @@ simplified posts:create -c "Work in progress" -a "ACCOUNT_ID" --action draft
 simplified posts:create -c "Check this out" -a "ACCOUNT_ID" --action add_to_queue \
   --media "https://example.com/image.jpg"
 
+# Post with media + thumbnail (e.g. video poster)
+simplified posts:create -c "New reel" -a "ACCOUNT_ID" --action add_to_queue \
+  --media-json '[{"url":"https://example.com/video.mp4","thumbUrl":"https://example.com/poster.jpg"}]'
+
 # Complex post from JSON file (multi-platform, platform-specific settings)
 simplified posts:create --json post.json
 ```

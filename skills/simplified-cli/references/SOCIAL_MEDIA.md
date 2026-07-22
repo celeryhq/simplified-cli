@@ -86,6 +86,14 @@ Multiple media (max 10, comma-separated):
   --media "https://example.com/img1.jpg,https://example.com/img2.jpg"
 ```
 
+Media with per-item thumbnails (e.g. a video poster). `--media-json` takes a JSON array whose
+items are either a URL string or a `{ "url", "thumbUrl" }` object, and wins over `--media` when
+both are passed:
+```bash
+simplified posts:create -c "New reel" -a "act_123" --action add_to_queue \
+  --media-json '[{"url":"https://example.com/v.mp4","thumbUrl":"https://example.com/poster.jpg"}]'
+```
+
 ### Draft
 
 ```bash
@@ -280,6 +288,7 @@ simplified posts:update --post-id "ps_abc123" --media ""
 | `--time` | New time `HH:MM` |
 | `--timezone` | New timezone (e.g. `UTC`, `Europe/Warsaw`) |
 | `--media` / `-m` | Comma-separated media URLs; pass empty string to clear |
+| `--media-json` | JSON array of URL strings and/or `{url, thumbUrl}` objects; wins over `--media` |
 
 ---
 
