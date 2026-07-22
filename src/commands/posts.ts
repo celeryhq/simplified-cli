@@ -221,26 +221,35 @@ type UpdateArgs = {
   time?: string;
   timezone?: string;
   media?: string;
+  'media-json'?: string;
 };
 
-function buildUpdateFields(args: UpdateArgs) {
-  const mediaUrls = args.media !== undefined
-    ? (args.media ? parseCommaSeparated(args.media) : [])
-    : undefined;
+function buildUpdateFields(args: UpdateArgs, media: MediaItem[] | undefined) {
   return {
     ...(args.content !== undefined && { message: args.content }),
     ...(args.date && { date: args.date }),
     ...(args.time && { time: args.time }),
     ...(args.timezone && { timezone: args.timezone }),
-    ...(mediaUrls !== undefined && { media: mediaUrls }),
+    ...(media !== undefined && { media }),
   };
 }
 
 export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
   const config = getConfig();
   const api = new SimplifiedAPI(config);
+  let media: MediaItem[] | undefined;
   try {
-    const result = await api.updatePost({ post_id: args['post-id'], ...buildUpdateFields(args) });
+    const resolved = resolveMedia(args.media, args['media-json'], { clearOnEmpty: true });
+    if (resolved.mediaIgnored) {
+      console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+    }
+    media = resolved.value;
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
+  try {
+    const result = await api.updatePost({ post_id: args['post-id'], ...buildUpdateFields(args, media) });
     console.log('✅ Post updated:');
     console.log(JSON.stringify(result, null, 2));
   } catch (e: unknown) {
@@ -253,8 +262,19 @@ export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
 export async function updateDraft(args: UpdateArgs & { 'draft-id': string }) {
   const config = getConfig();
   const api = new SimplifiedAPI(config);
+  let media: MediaItem[] | undefined;
   try {
-    const result = await api.updateDraft({ draft_id: args['draft-id'], ...buildUpdateFields(args) });
+    const resolved = resolveMedia(args.media, args['media-json'], { clearOnEmpty: true });
+    if (resolved.mediaIgnored) {
+      console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+    }
+    media = resolved.value;
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
+  try {
+    const result = await api.updateDraft({ draft_id: args['draft-id'], ...buildUpdateFields(args, media) });
     console.log('✅ Draft updated:');
     console.log(JSON.stringify(result, null, 2));
   } catch (e: unknown) {
@@ -271,6 +291,7 @@ export async function createPost(args: {
   action?: string;
   date?: string;
   media?: string;
+  'media-json'?: string;
   comment?: string;
   comments?: string;
   additional?: string;
@@ -304,7 +325,17 @@ export async function createPost(args: {
     }
 
     const accountIds = parseCommaSeparated(args.accounts);
-    const mediaUrls = args.media ? parseCommaSeparated(args.media) : undefined;
+    let mediaUrls: MediaItem[] | undefined;
+    try {
+      const resolvedMedia = resolveMedia(args.media, args['media-json'], { clearOnEmpty: false });
+      if (resolvedMedia.mediaIgnored) {
+        console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+      }
+      mediaUrls = resolvedMedia.value;
+    } catch (e: unknown) {
+      console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(1);
+    }
 
     let additional: Record<string, unknown> | undefined;
     if (args.additional) {
