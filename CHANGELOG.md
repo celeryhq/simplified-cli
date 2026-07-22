@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] — 2026-07-22
+
+### Added
+
+- **Per-item media thumbnails on posts.** A new `--media-json` flag on `posts:create`,
+  `posts:update`, and `posts:update-draft` accepts a JSON array whose elements are either a plain
+  URL string or a `{"url","thumbUrl"}` object — letting you attach a thumbnail/poster (e.g. a video
+  poster frame) per media item. Example:
+  `--media-json '[{"url":"https://example.com/video.mp4","thumbUrl":"https://example.com/poster.jpg"}]'`.
+  `--media-json` wins over `--media` when both are given. Backwards compatible: `--media` and plain
+  string URLs work exactly as before, and `--json` payloads accept the same mixed `media` array.
+
 ## [1.7.0] — 2026-06-24
 
 ### Added
