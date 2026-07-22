@@ -354,7 +354,7 @@ yargs(argv)
         })
         .option('media-json', {
           type: 'string',
-          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media)',
+          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
         }),
     updatePost
   )
@@ -381,7 +381,7 @@ yargs(argv)
         })
         .option('media-json', {
           type: 'string',
-          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media)',
+          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
         }),
     updateDraft
   )
