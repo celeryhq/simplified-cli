@@ -1,9 +1,43 @@
 import { readFileSync } from 'fs';
 import { getConfig } from '../config';
-import { SimplifiedAPI, CreatePostRequest, PostComment } from '../api';
+import { SimplifiedAPI, CreatePostRequest, PostComment, MediaItem } from '../api';
 
 function parseCommaSeparated(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Parse the `--media-json` flag: a JSON array whose elements are either a URL string or a
+ * `{ url, thumbUrl? }` object. Objects are normalized to `{ url }` or `{ url, thumbUrl }`,
+ * dropping any other keys. Throws with a clear, index-annotated message on invalid input so the
+ * caller can surface it and exit.
+ */
+export function parseMediaJson(input: string): MediaItem[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input);
+  } catch {
+    throw new Error('--media-json must be valid JSON');
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error('--media-json must be a JSON array');
+  }
+  return parsed.map((item, i): MediaItem => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      const obj = item as Record<string, unknown>;
+      if (typeof obj.url !== 'string') {
+        throw new Error(`--media-json[${i}]: "url" is required and must be a string`);
+      }
+      if (obj.thumbUrl !== undefined && typeof obj.thumbUrl !== 'string') {
+        throw new Error(`--media-json[${i}]: "thumbUrl" must be a string`);
+      }
+      return obj.thumbUrl !== undefined
+        ? { url: obj.url, thumbUrl: obj.thumbUrl }
+        : { url: obj.url };
+    }
+    throw new Error(`--media-json[${i}]: must be a URL string or a {url, thumbUrl} object`);
+  });
 }
 
 /**

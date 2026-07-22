@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { withGroupFlag, buildComments } from './posts';
+import { withGroupFlag, buildComments, parseMediaJson } from './posts';
 import { CreatePostRequest } from '../api';
 
 const base: CreatePostRequest = {
@@ -68,5 +68,53 @@ describe('buildComments', () => {
 
   it('throws when an entry is missing a string message', () => {
     expect(() => buildComments('[{"delay":10}]', undefined)).toThrow(/message/);
+  });
+});
+
+describe('parseMediaJson', () => {
+  it('parses a mix of URL strings and {url, thumbUrl} objects', () => {
+    expect(
+      parseMediaJson('["https://a.com/i.jpg",{"url":"https://a.com/v.mp4","thumbUrl":"https://a.com/p.jpg"}]')
+    ).toEqual([
+      'https://a.com/i.jpg',
+      { url: 'https://a.com/v.mp4', thumbUrl: 'https://a.com/p.jpg' },
+    ]);
+  });
+
+  it('parses an all-strings array', () => {
+    expect(parseMediaJson('["https://a.com/1.jpg","https://a.com/2.jpg"]')).toEqual([
+      'https://a.com/1.jpg',
+      'https://a.com/2.jpg',
+    ]);
+  });
+
+  it('accepts an object without thumbUrl and drops unknown keys', () => {
+    expect(parseMediaJson('[{"url":"https://a.com/v.mp4","foo":"bar"}]')).toEqual([
+      { url: 'https://a.com/v.mp4' },
+    ]);
+  });
+
+  it('throws on invalid JSON', () => {
+    expect(() => parseMediaJson('not json')).toThrow(/valid JSON/);
+  });
+
+  it('throws when the top level is not an array', () => {
+    expect(() => parseMediaJson('{"url":"x"}')).toThrow(/array/);
+  });
+
+  it('throws, naming the index, when an object is missing url', () => {
+    expect(() => parseMediaJson('["ok",{"thumbUrl":"x"}]')).toThrow(/\[1\].*url/);
+  });
+
+  it('throws when url is not a string', () => {
+    expect(() => parseMediaJson('[{"url":5}]')).toThrow(/url/);
+  });
+
+  it('throws when thumbUrl is not a string', () => {
+    expect(() => parseMediaJson('[{"url":"x","thumbUrl":5}]')).toThrow(/thumbUrl/);
+  });
+
+  it('throws on an element that is neither a string nor an object', () => {
+    expect(() => parseMediaJson('[5]')).toThrow(/string or.*object/);
   });
 });
