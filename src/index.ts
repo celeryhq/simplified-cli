@@ -203,6 +203,10 @@ yargs(argv)
           type: 'string',
           description: 'Comma-separated public media URLs (max 10)',
         })
+        .option('media-json', {
+          type: 'string',
+          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
+        })
         .option('comment', {
           type: 'string',
           description: 'A single auto-comment added after the post publishes (e.g. "link in first comment")',
@@ -239,6 +243,10 @@ yargs(argv)
         .example(
           '$0 posts:create -c "New post!" -a "123" --action add_to_queue --comment "Link in first comment 👇"',
           'Add a first auto-comment'
+        )
+        .example(
+          '$0 posts:create -c "New reel" -a "123" --action add_to_queue --media-json \'[{"url":"https://x.com/v.mp4","thumbUrl":"https://x.com/poster.jpg"}]\'',
+          'Queue a video with a poster thumbnail'
         )
         .example('$0 posts:create --json campaign.json', 'Create post from JSON file'),
     createPost
@@ -343,6 +351,10 @@ yargs(argv)
           alias: 'm',
           type: 'string',
           description: 'Comma-separated media URLs (pass empty string to clear)',
+        })
+        .option('media-json', {
+          type: 'string',
+          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
         }),
     updatePost
   )
@@ -366,6 +378,10 @@ yargs(argv)
           alias: 'm',
           type: 'string',
           description: 'Comma-separated media URLs (pass empty string to clear)',
+        })
+        .option('media-json', {
+          type: 'string',
+          description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
         }),
     updateDraft
   )

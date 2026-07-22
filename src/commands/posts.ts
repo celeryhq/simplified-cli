@@ -1,9 +1,65 @@
 import { readFileSync } from 'fs';
 import { getConfig } from '../config';
-import { SimplifiedAPI, CreatePostRequest, PostComment } from '../api';
+import { SimplifiedAPI, CreatePostRequest, PostComment, MediaItem } from '../api';
 
 function parseCommaSeparated(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Parse the `--media-json` flag: a JSON array whose elements are either a URL string or a
+ * `{ url, thumbUrl? }` object. Objects are normalized to `{ url }` or `{ url, thumbUrl }`,
+ * dropping any other keys. Throws with a clear, index-annotated message on invalid input so the
+ * caller can surface it and exit.
+ */
+export function parseMediaJson(input: string): MediaItem[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input);
+  } catch {
+    throw new Error('--media-json must be valid JSON');
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error('--media-json must be a JSON array');
+  }
+  return parsed.map((item, i): MediaItem => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      const obj = item as Record<string, unknown>;
+      if (typeof obj.url !== 'string') {
+        throw new Error(`--media-json[${i}]: "url" is required and must be a string`);
+      }
+      if (obj.thumbUrl !== undefined && typeof obj.thumbUrl !== 'string') {
+        throw new Error(`--media-json[${i}]: "thumbUrl" must be a string`);
+      }
+      return obj.thumbUrl !== undefined
+        ? { url: obj.url, thumbUrl: obj.thumbUrl }
+        : { url: obj.url };
+    }
+    throw new Error(`--media-json[${i}]: must be a URL string or a {url, thumbUrl} object`);
+  });
+}
+
+/**
+ * Resolve the media payload from the two mutually-exclusive flags. `--media-json` wins over
+ * `--media` when both are present (reported via `mediaIgnored` so the caller can warn).
+ *
+ * `clearOnEmpty` distinguishes the update path (an empty-but-present `--media` clears media by
+ * sending `[]`) from the create path (an empty `--media` is simply omitted).
+ */
+export function resolveMedia(
+  media: string | undefined,
+  mediaJson: string | undefined,
+  opts: { clearOnEmpty: boolean }
+): { value?: MediaItem[]; mediaIgnored: boolean } {
+  if (mediaJson) {
+    return { value: parseMediaJson(mediaJson), mediaIgnored: Boolean(media) };
+  }
+  if (opts.clearOnEmpty) {
+    const value = media !== undefined ? (media ? parseCommaSeparated(media) : []) : undefined;
+    return { value, mediaIgnored: false };
+  }
+  return { value: media ? parseCommaSeparated(media) : undefined, mediaIgnored: false };
 }
 
 /**
@@ -165,26 +221,35 @@ type UpdateArgs = {
   time?: string;
   timezone?: string;
   media?: string;
+  'media-json'?: string;
 };
 
-function buildUpdateFields(args: UpdateArgs) {
-  const mediaUrls = args.media !== undefined
-    ? (args.media ? parseCommaSeparated(args.media) : [])
-    : undefined;
+function buildUpdateFields(args: UpdateArgs, media: MediaItem[] | undefined) {
   return {
     ...(args.content !== undefined && { message: args.content }),
     ...(args.date && { date: args.date }),
     ...(args.time && { time: args.time }),
     ...(args.timezone && { timezone: args.timezone }),
-    ...(mediaUrls !== undefined && { media: mediaUrls }),
+    ...(media !== undefined && { media }),
   };
 }
 
 export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
   const config = getConfig();
   const api = new SimplifiedAPI(config);
+  let media: MediaItem[] | undefined;
   try {
-    const result = await api.updatePost({ post_id: args['post-id'], ...buildUpdateFields(args) });
+    const resolved = resolveMedia(args.media, args['media-json'], { clearOnEmpty: true });
+    if (resolved.mediaIgnored) {
+      console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+    }
+    media = resolved.value;
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
+  try {
+    const result = await api.updatePost({ post_id: args['post-id'], ...buildUpdateFields(args, media) });
     console.log('✅ Post updated:');
     console.log(JSON.stringify(result, null, 2));
   } catch (e: unknown) {
@@ -197,8 +262,19 @@ export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
 export async function updateDraft(args: UpdateArgs & { 'draft-id': string }) {
   const config = getConfig();
   const api = new SimplifiedAPI(config);
+  let media: MediaItem[] | undefined;
   try {
-    const result = await api.updateDraft({ draft_id: args['draft-id'], ...buildUpdateFields(args) });
+    const resolved = resolveMedia(args.media, args['media-json'], { clearOnEmpty: true });
+    if (resolved.mediaIgnored) {
+      console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+    }
+    media = resolved.value;
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
+  try {
+    const result = await api.updateDraft({ draft_id: args['draft-id'], ...buildUpdateFields(args, media) });
     console.log('✅ Draft updated:');
     console.log(JSON.stringify(result, null, 2));
   } catch (e: unknown) {
@@ -215,6 +291,7 @@ export async function createPost(args: {
   action?: string;
   date?: string;
   media?: string;
+  'media-json'?: string;
   comment?: string;
   comments?: string;
   additional?: string;
@@ -248,7 +325,17 @@ export async function createPost(args: {
     }
 
     const accountIds = parseCommaSeparated(args.accounts);
-    const mediaUrls = args.media ? parseCommaSeparated(args.media) : undefined;
+    let mediaUrls: MediaItem[] | undefined;
+    try {
+      const resolvedMedia = resolveMedia(args.media, args['media-json'], { clearOnEmpty: false });
+      if (resolvedMedia.mediaIgnored) {
+        console.error('⚠️  Both --media and --media-json given; using --media-json, ignoring --media');
+      }
+      mediaUrls = resolvedMedia.value;
+    } catch (e: unknown) {
+      console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(1);
+    }
 
     let additional: Record<string, unknown> | undefined;
     if (args.additional) {

@@ -33,12 +33,15 @@ export interface PostComment {
   delay?: number;
 }
 
+/** A media entry: a plain URL string, or an object carrying an optional thumbnail/poster URL. */
+export type MediaItem = string | { url: string; thumbUrl?: string };
+
 export interface CreatePostRequest {
   message: string;
   account_ids: string[];
   action: 'schedule' | 'add_to_queue' | 'draft';
   date?: string;
-  media?: string[];
+  media?: MediaItem[];
   /** Auto-comments added after publishing (e.g. "link in first comment"). Processed in order. */
   comments?: PostComment[];
   additional?: Record<string, unknown>;
@@ -285,7 +288,7 @@ export class SimplifiedAPI {
     date?: string;
     time?: string;
     timezone?: string;
-    media?: string[];
+    media?: MediaItem[];
   }) {
     return this.request<unknown>('PUT', '/api/v1/service/social-media/update-post', data);
   }
@@ -296,7 +299,7 @@ export class SimplifiedAPI {
     date?: string;
     time?: string;
     timezone?: string;
-    media?: string[];
+    media?: MediaItem[];
   }) {
     return this.request<unknown>('PUT', '/api/v1/service/social-media/update-draft', data);
   }

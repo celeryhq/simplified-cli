@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Social media automation CLI for Simplified.com — publish to 13 platforms, generate AI images and videos from the command line",
-    "version": "1.7.0"
+    "version": "1.8.0"
   },
   "plugins": [
     {
       "name": "simplified-cli",
       "source": "./",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "description": "Publish to 13 social platforms simultaneously, analyze performance, process images and generate AI images — all output is JSON, ideal for scripts and AI agents.",
       "author": {
         "name": "Simplified",
