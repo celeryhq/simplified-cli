@@ -295,7 +295,7 @@ simplified image:task --id "TASK_ID"
 
 ### AI Image Generation
 
-Generate images from text prompts or reference images using 20+ AI models (Flux, Google Imagen, OpenAI, Recraft, Ideogram, Stability, Qwen, ByteDance). Ideal for agentic content pipelines that need programmatic image creation.
+Generate images from text prompts or reference images using 19 AI models (Flux, Google Gemini, OpenAI GPT Image, Recraft, Ideogram, Qwen, ByteDance Seedream). Ideal for agentic content pipelines that need programmatic image creation.
 
 ```bash
 # Discover available models
@@ -327,22 +327,26 @@ simplified ai-image:status --id "ART_VARIATION_ID"
 - With `--wait`: polls every 3s (timeout: 180s), prints `[{ asset_id, url }]` on completion
 - Manual poll: `simplified ai-image:status --id <art_variation_id>`
 
-**Available models:** `flux.flux-realism` · `flux.flux-kontext-pro` · `flux.flux-schnell` · `google.imagen-4.0-generate-001` · `openai.imgen` · `openai.imgen-1.5` · `stability.diffusion` · `recraft.recraft` · `ideogram.ideogram-v3-turbo` · and more — run `ai-image:models` for the full list.
+**Available models:** `flux.flux-realism` · `flux.flux-kontext-pro` · `flux.flux-2-pro` · `google.gemini-3.1-flash-image` · `google.gemini-3-pro-image` · `openai.imgen-2` · `openai.imgen-2.5-sunburst` · `ideogram.ideogram-v4` · `recraft.recraft` · `bytedance.seedream-4.5` · `qwen.qwen-image` · and more — run `ai-image:models` for the full list.
+
+> **Model ids change.** Retired ids are transparently upgraded to their successor (`openai.imgen` → `openai.imgen-2`, `stability.diffusion` → `google.gemini-3.1-flash-image`), so older scripts keep working — but `ai-image:models` is the only authoritative list.
+
+> **Not every model takes every parameter.** OpenAI models accept no `--aspect-ratio` at all, and unsupported parameters are ignored rather than rejected — so a wrong flag yields a differently shaped image, not an error. Check `ai-image:models --capability <cap>` before generating.
 
 ---
 
 ### AI Video Generation
 
-Generate videos from text prompts or reference images using state-of-the-art models (Google Veo, OpenAI Sora, Kling, ByteDance Seedance, MiniMax Hailuo, WAN). Model ids, capabilities, and valid parameter values are model-specific — discover them with `ai-video:models`.
+Generate videos from text prompts or reference images using state-of-the-art models (Google Veo and Gemini, Kling, ByteDance Seedance, MiniMax Hailuo, WAN, xAI Grok). Model ids, capabilities, and valid parameter values are model-specific — discover them with `ai-video:models`.
 
 ```bash
 # Discover available video models and their fields
 simplified ai-video:models
-simplified ai-video:models --model-id veo-3 --capability prompt
+simplified ai-video:models --model-id veo-3.1 --capability prompt
 
 # Generate from a text prompt (wait for result)
 simplified ai-video:generate \
-  --model veo-3-fast \
+  --model veo-3.1-fast \
   --prompt "Drone shot over a neon city at night, cinematic" \
   --aspect-ratio 16:9 --resolution 1080p --duration 8 \
   --storage asset \
@@ -366,7 +370,9 @@ simplified ai-video:status --art-id "ART_ID" --id "ART_VARIATION_ID"
 
 **Capabilities:** `prompt` · `reference_image` · `multiple_images` · `first_last_frame` (per-model — check `ai-video:models`)
 
-**Available models:** `veo-3` · `veo-3.1` · `sora-2` · `sora-2-pro` · `kling-v2.5-turbo-pro` · `bytedance-seedance-2` · `minimax-hailuo-02-pro` · `wan-2.5-preview` · and more — run `ai-video:models` for the full list.
+**Available models:** `veo-3.1` · `veo-3.1-fast` · `veo-3.1-lite` · `kling-v3.0` · `kling-v3-turbo-t2v` · `bytedance-seedance-2` · `bytedance-seedance-2-5` · `minimax-hailuo-2.3-pro` · `wan-2.7-t2v` · `grok-imagine-t2v` · `gemini-omni` · and more — run `ai-video:models` for the full list.
+
+> Sora is no longer offered; `sora-2` and `sora-2-pro` now resolve to `veo-3.1`. Duration and resolution options are per-model — always check `ai-video:models --model-id <id>`.
 
 > Distinct from `video:script-to-video` / `video:text-to-video`, which generate AI **narrated/presenter-style** video (script → voiced, captioned clip) and remain under the `video:*` namespace.
 
