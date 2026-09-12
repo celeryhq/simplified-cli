@@ -35,7 +35,6 @@ import {
   imageOutpainting,
   upscaleImage,
   magicInpaint,
-  pixToPix,
   removeBackground,
   replaceImage,
   restoreImage,
@@ -727,30 +726,6 @@ yargs(argv)
   )
 
   .command(
-    'image:pix-to-pix',
-    'Transform an image using a text prompt',
-    (y: Argv) =>
-      y
-        .option('url', { type: 'string', description: 'Image URL', demandOption: true })
-        .option('prompt', {
-          type: 'string',
-          description: 'Transformation prompt',
-          demandOption: true,
-        })
-        .option('guidance-scale', {
-          type: 'number',
-          description: 'Image guidance scale (default: 1)',
-        })
-        .option('count', { type: 'number', description: 'Number of results (default: 4)' })
-        .option('wait', {
-          type: 'boolean',
-          default: false,
-          description: 'Poll until task completes and print result',
-        }),
-    pixToPix
-  )
-
-  .command(
     'image:replace',
     'Replace image background with transparent, a color, or another image',
     (y: Argv) =>
@@ -826,7 +801,7 @@ yargs(argv)
       y
         .option('model', {
           type: 'string',
-          description: 'Model ID (e.g. flux.flux-realism, google.imagen-4.0-generate-001, openai.imgen)',
+          description: 'Model ID (e.g. flux.flux-realism, google.gemini-3.1-flash-image, openai.imgen-2)',
           demandOption: true,
         })
         .option('capability', {
@@ -920,7 +895,7 @@ yargs(argv)
       y
         .option('model', {
           type: 'string',
-          description: 'Model ID (e.g. veo-3, veo-3.1, sora-2, kling-v2.5-turbo-pro). Run ai-video:models to list.',
+          description: 'Model ID (e.g. veo-3.1, veo-3.1-fast, kling-v3.0, bytedance-seedance-2). Run ai-video:models to list.',
           demandOption: true,
         })
         .option('capability', {
@@ -958,7 +933,7 @@ yargs(argv)
           description: 'Poll until generation completes and print the output (file_url, asset id)',
         })
         .example(
-          '$0 ai-video:generate --model veo-3-fast --prompt "drone shot over a neon city at night" --aspect-ratio 16:9 --duration 8 --storage asset --wait',
+          '$0 ai-video:generate --model veo-3.1-fast --prompt "drone shot over a neon city at night" --aspect-ratio 16:9 --duration 8 --storage asset --wait',
           'Text to video'
         )
         .example(
@@ -991,13 +966,13 @@ yargs(argv)
     'List available AI video models with capabilities and per-model fields',
     (y: Argv) =>
       y
-        .option('model-id', { type: 'string', description: 'Filter to one model (e.g. veo-3)' })
+        .option('model-id', { type: 'string', description: 'Filter to one model (e.g. veo-3.1)' })
         .option('capability', {
           type: 'string',
           description: `Show the full field schema for this capability: ${VIDEO_GEN_CAPABILITIES.join(' | ')}`,
         })
         .example('$0 ai-video:models', 'List all video models')
-        .example('$0 ai-video:models --model-id veo-3 --capability prompt', 'Full field definitions for a model'),
+        .example('$0 ai-video:models --model-id veo-3.1 --capability prompt', 'Full field definitions for a model'),
     listAiVideoModels
   )
 

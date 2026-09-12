@@ -408,15 +408,6 @@ export class SimplifiedAPI {
     return this.request<TaskResponse>('POST', '/api/v1/service/image-tools/magic-inpaint', params);
   }
 
-  async pixToPix(params: {
-    image_url: string;
-    prompt: string;
-    image_guidance_scale?: number;
-    counts?: number;
-  }) {
-    return this.request<TaskResponse>('POST', '/api/v1/service/image-tools/pix-to-pix', params);
-  }
-
   async removeBackground(params: {
     image_url: string;
     magic_crop?: boolean;
