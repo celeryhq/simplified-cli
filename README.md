@@ -289,7 +289,7 @@ simplified image:generative-fill \
 simplified image:task --id "TASK_ID"
 ```
 
-**All image commands:** `image:blur-background` · `image:remove-background` · `image:convert` · `image:upscale` · `image:restore` · `image:generative-fill` · `image:outpaint` · `image:magic-inpaint` · `image:pix-to-pix` · `image:replace` · `image:sd-scribble`
+**All image commands:** `image:blur-background` · `image:remove-background` · `image:convert` · `image:upscale` · `image:restore` · `image:generative-fill` · `image:outpaint` · `image:magic-inpaint` · `image:replace` · `image:sd-scribble`
 
 ---
 

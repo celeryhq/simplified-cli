@@ -35,7 +35,6 @@ import {
   imageOutpainting,
   upscaleImage,
   magicInpaint,
-  pixToPix,
   removeBackground,
   replaceImage,
   restoreImage,
@@ -724,30 +723,6 @@ yargs(argv)
           description: 'Poll until task completes and print result',
         }),
     magicInpaint
-  )
-
-  .command(
-    'image:pix-to-pix',
-    'Transform an image using a text prompt',
-    (y: Argv) =>
-      y
-        .option('url', { type: 'string', description: 'Image URL', demandOption: true })
-        .option('prompt', {
-          type: 'string',
-          description: 'Transformation prompt',
-          demandOption: true,
-        })
-        .option('guidance-scale', {
-          type: 'number',
-          description: 'Image guidance scale (default: 1)',
-        })
-        .option('count', { type: 'number', description: 'Number of results (default: 4)' })
-        .option('wait', {
-          type: 'boolean',
-          default: false,
-          description: 'Poll until task completes and print result',
-        }),
-    pixToPix
   )
 
   .command(

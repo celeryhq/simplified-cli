@@ -137,33 +137,6 @@ export async function magicInpaint(args: {
   }
 }
 
-export async function pixToPix(args: {
-  url: string;
-  prompt: string;
-  'guidance-scale'?: number;
-  count?: number;
-  wait: boolean;
-}) {
-  const api = new SimplifiedAPI(getConfig());
-  try {
-    await submitAndMaybeWait(
-      api,
-      () =>
-        api.pixToPix({
-          image_url: args.url,
-          prompt: args.prompt,
-          image_guidance_scale: args['guidance-scale'],
-          counts: args.count,
-        }),
-      args.wait,
-      'image'
-    );
-  } catch (e: unknown) {
-    console.error(`❌ ${e instanceof Error ? e.message : e}`);
-    process.exit(1);
-  }
-}
-
 export async function removeBackground(args: {
   url: string;
   'magic-crop'?: boolean;
