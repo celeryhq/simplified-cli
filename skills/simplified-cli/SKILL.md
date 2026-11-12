@@ -147,8 +147,8 @@ simplified posts:create -c "Your content" -a "<account_id>" --action draft
 simplified posts:update-draft --draft-id "<draft_id>" --date "2026-11-12" --time "09:00" --timezone "America/Los_Angeles"
 simplified posts:schedule-draft --draft-ids "<draft_id>" --action schedule --tz "America/Los_Angeles"
 
-# Read back in the same zone (otherwise dates are UTC: 09:00 PT = 17:00 UTC, 16:00 UTC in DST)
-simplified posts:list --accounts "<account_id>" --category scheduled --tz "America/Los_Angeles"
+# Read back: each post has date + time + timezone as scheduled ("09:00" + "America/Los_Angeles"); no conversion
+simplified posts:list --accounts "<account_id>" --category scheduled
 ```
 
 ### Send drafts for review (review bundle)

@@ -148,6 +148,45 @@ export function summarizeScheduleDraft(result: ScheduleDraftResponse | undefined
   return { postIds, errors, ok: postIds.length > 0 };
 }
 
+/** Status the update-post / update-draft APIs use for a successful item. */
+const UPDATE_STATUS_OK = 1;
+
+type UpdateResultItem = { status?: unknown; message?: unknown };
+
+/**
+ * The update APIs answer HTTP 200 even when nothing was updated, e.g.
+ * `{ status: 3, results: [{ status: 3, message: "Draft not updated: ..." }] }`. Treat any status
+ * other than 1 (top level or per item) as a failure and collect the messages. A body without a
+ * numeric status is treated as success, as before.
+ */
+export function checkUpdateResult(result: unknown): { ok: boolean; errors: string[] } {
+  if (!result || typeof result !== 'object') return { ok: true, errors: [] };
+  const body = result as { status?: unknown; results?: unknown };
+  const items: UpdateResultItem[] = Array.isArray(body.results) ? (body.results as UpdateResultItem[]) : [];
+  const failedItems = items.filter((r) => typeof r?.status === 'number' && r.status !== UPDATE_STATUS_OK);
+  const topLevelFailed = typeof body.status === 'number' && body.status !== UPDATE_STATUS_OK;
+  const ok = !topLevelFailed && failedItems.length === 0;
+  const errors = failedItems.map((r) =>
+    typeof r.message === 'string' ? r.message : `status ${String(r.status)}`
+  );
+  if (!ok && errors.length === 0) errors.push(`status ${String(body.status)}`);
+  return { ok, errors };
+}
+
+/** Print an update response, failing the command when the API reports that nothing was updated. */
+function reportUpdateResult(result: unknown, kind: 'Post' | 'Draft'): void {
+  const { ok, errors } = checkUpdateResult(result);
+  if (ok) {
+    console.log(`✅ ${kind} updated:`);
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  console.error(`❌ ${kind} not updated:`);
+  errors.forEach((msg) => console.error(`   ${msg}`));
+  console.log(JSON.stringify(result, null, 2));
+  process.exit(1);
+}
+
 export async function listPosts(args: {
   accounts: string;
   page?: number;
@@ -292,8 +331,7 @@ export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
   }
   try {
     const result = await api.updatePost({ post_id: args['post-id'], ...buildUpdateFields(args, media) });
-    console.log('✅ Post updated:');
-    console.log(JSON.stringify(result, null, 2));
+    reportUpdateResult(result, 'Post');
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`❌ Failed to update post: ${msg}`);
@@ -323,8 +361,7 @@ export async function updateDraft(args: UpdateArgs & { 'draft-id': string }) {
   }
   try {
     const result = await api.updateDraft({ draft_id: args['draft-id'], ...buildUpdateFields(args, media) });
-    console.log('✅ Draft updated:');
-    console.log(JSON.stringify(result, null, 2));
+    reportUpdateResult(result, 'Draft');
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`❌ Failed to update draft: ${msg}`);

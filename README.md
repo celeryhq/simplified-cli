@@ -186,7 +186,7 @@ simplified posts:create --json post.json
 
 **Actions:** `add_to_queue` · `schedule` (requires `--date "YYYY-MM-DD HH:MM"`) · `draft`
 
-**Timezones:** `--date` is a wall-clock time. Use `--timezone <IANA>` to say which zone it is in. The default is the workspace timezone, and the CLI never converts the date to UTC. Post dates come back in **UTC** unless you pass `--tz` to `posts:list`. For example, 09:00 `America/Los_Angeles` reads back as 17:00 UTC (16:00 UTC during daylight saving time).
+**Timezones:** `--date` is a wall-clock time. Use `--timezone <IANA>` to say which zone it is in. The default is the workspace timezone, and the CLI never converts the date to UTC. `posts:list` returns each post's `date` and `time` together with its `timezone`, as scheduled. A post set for 09:00 `America/Los_Angeles` reads back as `"time": "09:00", "timezone": "America/Los_Angeles"`, so there is no conversion to do.
 
 **Platform-specific settings (`--additional`):** Pass a JSON string for per-platform options (Instagram `postType`/`channel`, TikTok `privacyStatus`, YouTube `post.title`, etc.). See [`skills/simplified-cli/references/PLATFORM_GUIDE.md`](skills/simplified-cli/references/PLATFORM_GUIDE.md) for all options.
 
