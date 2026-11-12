@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { withGroupFlag, buildComments, parseMediaJson, resolveMedia } from './posts';
+import {
+  withGroupFlag,
+  withTimezone,
+  assertDraftScheduleFields,
+  summarizeScheduleDraft,
+  buildComments,
+  parseMediaJson,
+  resolveMedia,
+} from './posts';
 import { CreatePostRequest } from '../api';
 
 const base: CreatePostRequest = {
@@ -163,5 +171,79 @@ describe('resolveMedia', () => {
 
   it('propagates parseMediaJson errors', () => {
     expect(() => resolveMedia(undefined, 'not json', { clearOnEmpty: false })).toThrow(/valid JSON/);
+  });
+});
+
+describe('withTimezone', () => {
+  it('adds timezone and leaves the date string unchanged', () => {
+    const out = withTimezone({ ...base, action: 'schedule', date: '2026-11-12 09:00' }, 'America/Los_Angeles');
+    expect(out).toMatchObject({ date: '2026-11-12 09:00', timezone: 'America/Los_Angeles' });
+  });
+
+  it('returns the payload unchanged when the flag is absent (workspace timezone)', () => {
+    expect(withTimezone(base, undefined)).toBe(base);
+  });
+
+  it('keeps a timezone from a -j payload when the flag is absent', () => {
+    expect(withTimezone({ ...base, timezone: 'Europe/Warsaw' }, undefined).timezone).toBe('Europe/Warsaw');
+  });
+
+  it('lets the flag win over a -j payload timezone', () => {
+    expect(withTimezone({ ...base, timezone: 'Europe/Warsaw' }, 'UTC').timezone).toBe('UTC');
+  });
+
+  it('trims the value and leaves IANA validation to the API', () => {
+    expect(withTimezone(base, ' Mars/Olympus ').timezone).toBe('Mars/Olympus');
+  });
+
+  it('throws on an empty value', () => {
+    expect(() => withTimezone(base, '  ')).toThrow(/non-empty/);
+  });
+
+  it('does not mutate the input payload', () => {
+    const input = { ...base };
+    withTimezone(input, 'UTC');
+    expect(input.timezone).toBeUndefined();
+  });
+});
+
+describe('assertDraftScheduleFields', () => {
+  it('accepts none of the three', () => {
+    expect(() => assertDraftScheduleFields({})).not.toThrow();
+  });
+
+  it('accepts all three together', () => {
+    expect(() =>
+      assertDraftScheduleFields({ date: '2026-11-12', time: '09:00', timezone: 'America/Los_Angeles' })
+    ).not.toThrow();
+  });
+
+  it('rejects date and time without timezone, naming the missing flag', () => {
+    expect(() => assertDraftScheduleFields({ date: '2026-11-12', time: '09:00' })).toThrow(/missing: --timezone/);
+  });
+
+  it('rejects timezone alone', () => {
+    expect(() => assertDraftScheduleFields({ timezone: 'UTC' })).toThrow(/missing: --date, --time/);
+  });
+});
+
+describe('summarizeScheduleDraft', () => {
+  it('returns the new post ids and ok when at least one post was created', () => {
+    expect(summarizeScheduleDraft({ ids: ['p1', 'p2'], errors: [] })).toEqual({
+      postIds: ['p1', 'p2'],
+      errors: [],
+      ok: true,
+    });
+  });
+
+  it('is not ok when ids is empty, and keeps the errors', () => {
+    const r = summarizeScheduleDraft({ ids: [], errors: ['Draft 456 is already scheduled'] });
+    expect(r.ok).toBe(false);
+    expect(r.errors).toEqual(['Draft 456 is already scheduled']);
+  });
+
+  it('is not ok for an empty or missing body', () => {
+    expect(summarizeScheduleDraft(undefined).ok).toBe(false);
+    expect(summarizeScheduleDraft({}).ok).toBe(false);
   });
 });

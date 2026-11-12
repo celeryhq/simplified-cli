@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] — 2026-11-11
+
+### Added
+
+- **`--timezone` on `posts:create`.** Pass an IANA zone (e.g. `--timezone "America/Los_Angeles"`)
+  and the API reads `--date` in that zone. The date string is sent unchanged and is not converted to
+  UTC in the CLI. Without the flag the date is read in the workspace timezone. On the `-j` path the
+  flag overrides a `timezone` field in the file. The API ignores it for `add_to_queue`.
+- **`posts:schedule-draft`.** Schedules existing drafts (`--draft-ids`, `--action schedule|add_to_queue`,
+  optional `--tz`) through `POST /api/v1/service/social-media/schedule-draft`. It prints the new post
+  IDs (these differ from the draft IDs) and each per-draft error, and exits non-zero when no post was
+  created. A draft that is already scheduled is reported as an error and never scheduled twice.
+  The default `--tz` is your **planner** timezone, not the workspace timezone, so pass it explicitly.
+
+### Changed
+
+- **`posts:update-draft` requires `--date`, `--time` and `--timezone` together.** The API needs all
+  three, so a partial set now fails in the CLI instead of being sent.
+
+### Fixed
+
+- **`auth:whoami` shows the workspace name again.** The API now returns the bound workspace as
+  `workspace`, not `default_workspace`, so the name was silently missing. `whoami` reads both
+  shapes and also prints the workspace timezone, which `posts:create` uses when `--timezone` is
+  not given.
+
+### Docs
+
+- Draft → `update-draft` → `schedule-draft` flow for scheduling at an exact local time with no
+  placeholder time.
+- Post dates read back in UTC unless you pass `--tz`: 09:00 Pacific shows as 17:00 UTC (16:00 UTC
+  during daylight saving time).
+
 ## [1.8.0] — 2026-07-22
 
 ### Added

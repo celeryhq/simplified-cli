@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SimplifiedAPI } from './api';
+import { SimplifiedAPI, resolveWorkspace } from './api';
 
 const baseConfig = { apiKey: 'kid.secret', apiUrl: 'https://api.simplified.com' };
 
@@ -56,5 +56,22 @@ describe('brand kit URL/query construction', () => {
     const [url, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(url).toBe('https://api.simplified.com/api/v1/brandkit/bk_1/context-documents/link_9');
     expect((init as RequestInit).method).toBe('GET');
+  });
+});
+
+describe('resolveWorkspace', () => {
+  it('reads the current `workspace` field', () => {
+    expect(resolveWorkspace({ workspace: { id: 781951, name: 'PlannerWorkflowTests1' } })?.name).toBe(
+      'PlannerWorkflowTests1'
+    );
+  });
+
+  it('falls back to the legacy `default_workspace` field', () => {
+    expect(resolveWorkspace({ default_workspace: { id: 1, name: 'Legacy' } })?.name).toBe('Legacy');
+  });
+
+  it('returns undefined when neither is present', () => {
+    expect(resolveWorkspace({ teamspaces: [] })).toBeUndefined();
+    expect(resolveWorkspace(undefined)).toBeUndefined();
   });
 });
