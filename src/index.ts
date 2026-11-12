@@ -20,6 +20,7 @@ import {
   deleteDraft,
   updatePost,
   updateDraft,
+  scheduleDraft,
 } from './commands/posts';
 import {
   getAnalyticsRange,
@@ -197,6 +198,11 @@ yargs(argv)
           type: 'string',
           description: 'Schedule datetime in format: YYYY-MM-DD HH:MM (required for schedule)',
         })
+        .option('timezone', {
+          type: 'string',
+          description:
+            'IANA timezone --date is given in, e.g. America/Los_Angeles (default: workspace timezone). The date is sent as-is, not converted to UTC',
+        })
         .option('media', {
           alias: 'm',
           type: 'string',
@@ -234,6 +240,10 @@ yargs(argv)
         .example(
           '$0 posts:create -c "Scheduled post" -a "123,456" --action schedule --date "2026-03-15 12:00"',
           'Schedule a post to multiple accounts'
+        )
+        .example(
+          '$0 posts:create -c "Hello" -a "123" --action schedule --date "2026-11-12 09:00" --timezone "America/Los_Angeles"',
+          'Schedule for 9:00 AM Pacific'
         )
         .example(
           '$0 posts:create -c "Multi-platform" -a "123,456" --action draft --group',
@@ -370,9 +380,12 @@ yargs(argv)
           demandOption: true,
         })
         .option('content', { alias: 'c', type: 'string', description: 'New draft text' })
-        .option('date', { type: 'string', description: 'New date (YYYY-MM-DD)' })
-        .option('time', { type: 'string', description: 'New time (HH:MM)' })
-        .option('timezone', { type: 'string', description: 'New timezone (e.g. UTC)' })
+        .option('date', { type: 'string', description: 'New date (YYYY-MM-DD); requires --time and --timezone' })
+        .option('time', { type: 'string', description: 'New time (HH:MM); requires --date and --timezone' })
+        .option('timezone', {
+          type: 'string',
+          description: 'IANA timezone of --date/--time, e.g. America/Los_Angeles; requires --date and --time',
+        })
         .option('media', {
           alias: 'm',
           type: 'string',
@@ -383,6 +396,36 @@ yargs(argv)
           description: 'JSON array of URL strings and/or {url, thumbUrl} objects (alternative to --media, wins if both given)',
         }),
     updateDraft
+  )
+
+  // ── Posts: Schedule Draft ──────────────────────────────────────────────────
+  .command(
+    'posts:schedule-draft',
+    'Schedule existing draft(s) as posts, at the date/time stored on each draft or the next queue slot. Each draft must be linked to an account; a draft that is already scheduled is reported as an error, never scheduled twice',
+    (y: Argv) =>
+      y
+        .option('draft-ids', {
+          type: 'string',
+          description: 'Comma-separated draft IDs (each must be linked to an account)',
+          demandOption: true,
+        })
+        .option('action', {
+          type: 'string',
+          choices: ['schedule', 'add_to_queue'] as const,
+          description: 'schedule = date/time stored on the draft; add_to_queue = next free queue slot',
+          demandOption: true,
+        })
+        .option('tz', {
+          type: 'string',
+          description:
+            'IANA timezone the draft date/time is read in (default: your planner timezone, NOT the workspace timezone). Pass it explicitly',
+        })
+        .example(
+          '$0 posts:schedule-draft --draft-ids 456 --action schedule --tz "America/Los_Angeles"',
+          'Schedule a draft at its stored time, read in Pacific time'
+        )
+        .example('$0 posts:schedule-draft --draft-ids 456,789 --action add_to_queue', 'Queue drafts'),
+    (a) => scheduleDraft(a as unknown as Parameters<typeof scheduleDraft>[0])
   )
 
   // ── Review Bundle: Create ──────────────────────────────────────────────────

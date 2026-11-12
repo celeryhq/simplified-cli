@@ -40,13 +40,50 @@ export interface CreatePostRequest {
   message: string;
   account_ids: string[];
   action: 'schedule' | 'add_to_queue' | 'draft';
+  /** Wall-clock datetime `YYYY-MM-DD HH:MM`, read in `timezone` (or the workspace timezone). */
   date?: string;
+  /** IANA timezone `date` is given in (e.g. `America/Los_Angeles`). Omit for the workspace timezone. */
+  timezone?: string;
   media?: MediaItem[];
   /** Auto-comments added after publishing (e.g. "link in first comment"). Processed in order. */
   comments?: PostComment[];
   additional?: Record<string, unknown>;
   /** When true with 2+ account_ids, the API groups the posts under one groupId (one card). */
   group?: boolean;
+}
+
+export interface ScheduleDraftRequest {
+  draft_ids: string[];
+  /** `schedule` uses the date/time stored on the draft; `add_to_queue` uses the next free queue slot. */
+  action: 'schedule' | 'add_to_queue';
+  /** IANA timezone the draft's stored date/time is read in. Omit for the user's planner timezone. */
+  tz?: string;
+}
+
+export interface ScheduleDraftResponse {
+  /** New planner post IDs (different from the draft IDs). */
+  ids?: string[];
+  errors?: unknown[];
+}
+
+export interface WorkspaceSummary {
+  id: number;
+  name?: string;
+  slug?: string;
+  settings?: { timezone?: string; language?: string; start_of_week?: string };
+}
+
+export interface WorkspacesResponse {
+  /** Current API shape: the workspace the Api-Key is bound to. */
+  workspace?: WorkspaceSummary;
+  /** Legacy API shape, kept for older deployments. */
+  default_workspace?: WorkspaceSummary;
+  teamspaces?: { id: number; name?: string; slug?: string }[];
+}
+
+/** The workspace the key is bound to, from either the current or the legacy response shape. */
+export function resolveWorkspace(result: WorkspacesResponse | undefined): WorkspaceSummary | undefined {
+  return result?.workspace ?? result?.default_workspace;
 }
 
 export interface AnalyticsRangeRequest {
@@ -302,6 +339,14 @@ export class SimplifiedAPI {
     media?: MediaItem[];
   }) {
     return this.request<unknown>('PUT', '/api/v1/service/social-media/update-draft', data);
+  }
+
+  async scheduleDraft(data: ScheduleDraftRequest) {
+    return this.request<ScheduleDraftResponse>(
+      'POST',
+      '/api/v1/service/social-media/schedule-draft',
+      data
+    );
   }
 
   async getAnalyticsRange(data: AnalyticsRangeRequest) {
@@ -722,10 +767,7 @@ export class SimplifiedAPI {
    * IDs are integers — `teamspaces[].id` is passed straight into the `Space` header.
    */
   async getWorkspaces() {
-    return this.request<{
-      default_workspace?: { id: number; name?: string };
-      teamspaces?: { id: number; name?: string; slug?: string }[];
-    }>('GET', '/api/v1/service/workspaces');
+    return this.request<WorkspacesResponse>('GET', '/api/v1/service/workspaces');
   }
 
   async getBrandKit(brandId: string, params?: { expand?: string; fields?: string; omit?: string }) {

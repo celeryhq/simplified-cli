@@ -1,7 +1,7 @@
 import { getApiKeyInfo, getConfig, maskApiKey } from '../config';
 import { readStore, writeStore } from '../store';
 import { promptHidden } from '../prompt';
-import { SimplifiedAPI } from '../api';
+import { SimplifiedAPI, resolveWorkspace } from '../api';
 
 export async function whoami(): Promise<void> {
   const api = new SimplifiedAPI(getConfig());
@@ -15,9 +15,12 @@ export async function whoami(): Promise<void> {
   try {
     const result = await api.getWorkspaces();
 
-    if (result.default_workspace) {
-      const dw = result.default_workspace;
-      console.log(`✅ Default workspace: ${dw.name ?? '(unnamed)'} (${dw.id})`);
+    const workspace = resolveWorkspace(result);
+    if (workspace) {
+      console.log(`✅ Workspace: ${workspace.name ?? '(unnamed)'} (${workspace.id})`);
+      if (workspace.settings?.timezone) {
+        console.log(`   Timezone: ${workspace.settings.timezone} (default for posts:create without --timezone)`);
+      }
     }
 
     const teamspaces = result.teamspaces ?? [];

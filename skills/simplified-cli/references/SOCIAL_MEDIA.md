@@ -54,6 +54,23 @@ simplified posts:create \
   --date "2026-03-20 09:00"
 ```
 
+### Timezone (`--timezone`)
+
+`--date` is a wall-clock time (`YYYY-MM-DD HH:MM`). The API reads it in `--timezone` (an IANA zone).
+Without the flag it reads it in the **workspace** timezone. The CLI sends the date unchanged, so
+do not convert it to UTC yourself. An unknown zone returns `400 {"timezone": ["Unknown timezone '...'"]}`.
+The API ignores the flag for `add_to_queue`.
+
+```bash
+# 9:00 AM Pacific, whatever the workspace timezone is
+simplified posts:create -c "Hello" -a "123" --action schedule \
+  --date "2026-11-12 09:00" --timezone "America/Los_Angeles"
+```
+
+Post dates read back in **UTC** unless you ask for a display zone with `posts:list --tz`, so
+09:00 `America/Los_Angeles` shows as 17:00 UTC (16:00 UTC during daylight saving time). That is
+expected and not a bug.
+
 ### Grouped multi-platform post (`--group`)
 
 By default, posting to multiple accounts creates a *separate* post per account. Add `--group` to
@@ -142,6 +159,7 @@ JSON structure:
   "account_ids": ["111", "222", "333"],
   "action": "schedule",
   "date": "2026-03-20 09:00",
+  "timezone": "America/Los_Angeles",
   "media": ["https://example.com/image.jpg"],
   "comments": [
     { "message": "Link in first comment 👇", "delay": 0 },
@@ -155,6 +173,8 @@ JSON structure:
   }
 }
 ```
+
+`"timezone"` is optional (default: workspace timezone). `--timezone` on the command line overrides it.
 
 `"group": true` is optional — include it (or pass `--group`) to group 2+ accounts under one
 `groupId`; omit it for a separate post per account.
@@ -295,10 +315,54 @@ simplified posts:update --post-id "ps_abc123" --media ""
 ## `posts:update-draft`
 
 Update a draft. `--draft-id` is required; same optional fields as `posts:update`.
+`--date`, `--time` and `--timezone` must be given **together**. The CLI rejects a partial set.
+The API stores the time in UTC.
 
 ```bash
 simplified posts:update-draft --draft-id "d_abc123" -c "Revised copy"
-simplified posts:update-draft --draft-id "d_abc123" --date "2026-04-01" --time "09:00"
+simplified posts:update-draft --draft-id "d_abc123" --date "2026-04-01" --time "09:00" --timezone "America/Los_Angeles"
+```
+
+---
+
+## `posts:schedule-draft`
+
+Schedule existing drafts as posts. Each draft becomes a new post, either at the date/time stored on the
+draft (`schedule`) or at the account's next free queue slot (`add_to_queue`).
+
+```bash
+simplified posts:schedule-draft --draft-ids "456" --action schedule --tz "America/Los_Angeles"
+simplified posts:schedule-draft --draft-ids "456,789" --action add_to_queue
+```
+
+**Options:**
+
+| Flag | Default | Description |
+|---|---|---|
+| `--draft-ids` | *(required)* | Comma-separated draft IDs. Each draft must be linked to an account |
+| `--action` | *(required)* | `schedule` or `add_to_queue` |
+| `--tz` | user's **planner** timezone | IANA zone the draft's stored date/time is read in |
+
+> ⚠️ The default `--tz` is the user's planner timezone, **not** the workspace timezone that
+> `posts:create` uses. Always pass `--tz` explicitly.
+
+**Output:** the new **post** IDs (these differ from the draft IDs; use them with `posts:update` /
+`posts:delete`), then each entry from `errors`. The command exits non-zero when no post was created.
+
+**Errors:** a draft that is already scheduled or does not exist is reported as an error (`400` with
+`detail`) and never scheduled twice. A draft without an account cannot be scheduled.
+
+### Draft → schedule at an exact local time
+
+```bash
+# 1) create the draft (linked to an account)
+simplified posts:create -a "123" --action draft -c "..."
+# 2) set the real time in the intended zone (date, time and timezone together)
+simplified posts:update-draft --draft-id "456" --date "2026-11-12" --time "09:00" --timezone "America/Los_Angeles"
+# 3) schedule it in the same zone
+simplified posts:schedule-draft --draft-ids "456" --action schedule --tz "America/Los_Angeles"
+# 4) read back in the same zone (without --tz the date shows in UTC: 17:00, or 16:00 during DST)
+simplified posts:list --accounts "123" --category scheduled --tz "America/Los_Angeles"
 ```
 
 ---

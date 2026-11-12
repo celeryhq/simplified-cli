@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { getConfig } from '../config';
-import { SimplifiedAPI, CreatePostRequest, PostComment, MediaItem } from '../api';
+import { SimplifiedAPI, CreatePostRequest, PostComment, MediaItem, ScheduleDraftResponse } from '../api';
 
 function parseCommaSeparated(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
@@ -104,6 +104,48 @@ export function buildComments(commentsJson?: string, singleComment?: string): Po
  */
 export function withGroupFlag(postData: CreatePostRequest, groupFlag?: boolean): CreatePostRequest {
   return groupFlag || postData.group ? { ...postData, group: true } : postData;
+}
+
+/**
+ * Merge the --timezone flag into a post payload. The flag wins over a `timezone` already in a -j
+ * JSON payload; without the flag the payload is returned unchanged (the API then reads `date` in
+ * the workspace timezone). The date string itself is never converted. Returns a new object.
+ */
+export function withTimezone(postData: CreatePostRequest, timezone?: string): CreatePostRequest {
+  if (timezone === undefined) return postData;
+  const trimmed = timezone.trim();
+  if (!trimmed) {
+    throw new Error('--timezone must be a non-empty IANA timezone (e.g. "America/Los_Angeles")');
+  }
+  return { ...postData, timezone: trimmed };
+}
+
+/**
+ * The update-draft API needs `date`, `time` and `timezone` together. Fail early on a partial set
+ * instead of sending it to the API.
+ */
+export function assertDraftScheduleFields(args: { date?: string; time?: string; timezone?: string }): void {
+  const given = (['date', 'time', 'timezone'] as const).filter((k) => args[k]);
+  if (given.length > 0 && given.length < 3) {
+    const missing = (['date', 'time', 'timezone'] as const).filter((k) => !args[k]);
+    throw new Error(
+      `--date, --time and --timezone must be given together (missing: ${missing.map((k) => `--${k}`).join(', ')})`
+    );
+  }
+}
+
+/**
+ * Turn a schedule-draft response into lines to print and an exit code. The command fails when no
+ * post was created; per-draft errors are always reported.
+ */
+export function summarizeScheduleDraft(result: ScheduleDraftResponse | undefined): {
+  postIds: string[];
+  errors: unknown[];
+  ok: boolean;
+} {
+  const postIds = Array.isArray(result?.ids) ? result.ids.map(String) : [];
+  const errors = Array.isArray(result?.errors) ? result.errors : [];
+  return { postIds, errors, ok: postIds.length > 0 };
 }
 
 export async function listPosts(args: {
@@ -260,6 +302,12 @@ export async function updatePost(args: UpdateArgs & { 'post-id': string }) {
 }
 
 export async function updateDraft(args: UpdateArgs & { 'draft-id': string }) {
+  try {
+    assertDraftScheduleFields(args);
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
   const config = getConfig();
   const api = new SimplifiedAPI(config);
   let media: MediaItem[] | undefined;
@@ -290,6 +338,7 @@ export async function createPost(args: {
   accounts?: string;
   action?: string;
   date?: string;
+  timezone?: string;
   media?: string;
   'media-json'?: string;
   comment?: string;
@@ -369,6 +418,12 @@ export async function createPost(args: {
   // Honor --group on both paths (flag branch and -j JSON payload). On the -j path this also
   // preserves a `"group": true` already present in the file.
   postData = withGroupFlag(postData, args.group);
+  try {
+    postData = withTimezone(postData, args.timezone);
+  } catch (e: unknown) {
+    console.error(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  }
 
   try {
     const result = await api.createPost(postData);
@@ -377,6 +432,47 @@ export async function createPost(args: {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`❌ Failed to create post: ${msg}`);
+    process.exit(1);
+  }
+}
+
+export async function scheduleDraft(args: {
+  'draft-ids': string;
+  action: 'schedule' | 'add_to_queue';
+  tz?: string;
+}) {
+  const draftIds = parseCommaSeparated(args['draft-ids'] ?? '');
+  if (draftIds.length === 0) {
+    console.error('❌ --draft-ids must contain at least one draft ID');
+    process.exit(1);
+  }
+  const tz = args.tz?.trim();
+  if (args.tz !== undefined && !tz) {
+    console.error('❌ --tz must be a non-empty IANA timezone (e.g. "America/Los_Angeles")');
+    process.exit(1);
+  }
+  const config = getConfig();
+  const api = new SimplifiedAPI(config);
+  try {
+    const result = await api.scheduleDraft({
+      draft_ids: draftIds,
+      action: args.action,
+      ...(tz && { tz }),
+    });
+    const { postIds, errors, ok } = summarizeScheduleDraft(result);
+    if (postIds.length > 0) {
+      console.log(`✅ Scheduled ${postIds.length} post(s) from draft(s). New post IDs (not draft IDs):`);
+      postIds.forEach((id) => console.log(`   ${id}`));
+    }
+    errors.forEach((err) => console.error(`⚠️  ${typeof err === 'string' ? err : JSON.stringify(err)}`));
+    console.log(JSON.stringify(result, null, 2));
+    if (!ok) {
+      console.error('❌ No post was scheduled.');
+      process.exit(1);
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`❌ Failed to schedule draft(s): ${msg}`);
     process.exit(1);
   }
 }

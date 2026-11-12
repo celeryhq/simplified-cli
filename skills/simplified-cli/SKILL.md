@@ -78,7 +78,7 @@ stale env key can't silently shadow the one you logged in with. Keys are stored 
 |---|---|---|
 | **Auth** | `auth:login`, `auth:use`, `auth:list`, `auth:logout`, `auth:whoami` (global `--api-key`) | (this file — "API key profiles") |
 | **Context** | `teamspace:current`, `teamspace:use`, `teamspace:add`, `teamspace:list`, `teamspace:remove` | (this file — "Teamspace context") |
-| **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft`, `review-bundle:create`, `review-bundle:add-drafts` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
+| **Social Media** | `accounts:list`, `posts:create`, `posts:list`, `posts:list-drafts`, `posts:delete`, `posts:delete-draft`, `posts:update`, `posts:update-draft`, `posts:schedule-draft`, `review-bundle:create`, `review-bundle:add-drafts` | [SOCIAL_MEDIA.md](references/SOCIAL_MEDIA.md) |
 | **Analytics** | `analytics:range`, `analytics:posts`, `analytics:aggregated`, `analytics:audience` | [ANALYTICS.md](references/ANALYTICS.md) |
 | **Image Tools** | `image:blur-background`, `image:remove-background`, `image:convert`, `image:upscale`, `image:restore`, `image:generative-fill`, `image:outpaint`, `image:magic-inpaint`, `image:pix-to-pix`, `image:replace`, `image:sd-scribble` | [IMAGE_TOOLS.md](references/IMAGE_TOOLS.md) |
 | **Video Tools** | `video:add-b-rolls`, `video:convert`, `video:merge`, `video:remove-audio`, `video:reverse`, `video:script-to-video`, `video:text-to-video`, `video:speedup`, `video:task` | [VIDEO_TOOLS.md](references/VIDEO_TOOLS.md) |
@@ -134,6 +134,21 @@ simplified posts:update-draft --draft-id "<draft_id>" -c "Polished copy"
 
 # Delete drafts
 simplified posts:delete-draft --draft-ids "<id1>,<id2>"
+```
+
+### Schedule at an exact local time (e.g. 9:00 AM Pacific)
+```bash
+# Direct: --date is read in --timezone (default: workspace timezone). Never convert to UTC yourself.
+simplified posts:create -c "Your content" -a "<account_id>" --action schedule \
+  --date "2026-11-12 09:00" --timezone "America/Los_Angeles"
+
+# Via a draft (no placeholder time): date, time and timezone must be sent together
+simplified posts:create -c "Your content" -a "<account_id>" --action draft
+simplified posts:update-draft --draft-id "<draft_id>" --date "2026-11-12" --time "09:00" --timezone "America/Los_Angeles"
+simplified posts:schedule-draft --draft-ids "<draft_id>" --action schedule --tz "America/Los_Angeles"
+
+# Read back in the same zone (otherwise dates are UTC: 09:00 PT = 17:00 UTC, 16:00 UTC in DST)
+simplified posts:list --accounts "<account_id>" --category scheduled --tz "America/Los_Angeles"
 ```
 
 ### Send drafts for review (review bundle)

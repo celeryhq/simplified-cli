@@ -161,9 +161,13 @@ simplified posts:create -c "Hello world!" -a "ACCOUNT_ID" --action add_to_queue
 # Publish to multiple platforms simultaneously
 simplified posts:create -c "Launch day!" -a "INSTAGRAM_ID,LINKEDIN_ID,BLUESKY_ID" --action add_to_queue
 
-# Schedule a post
+# Schedule a post (date is read in the workspace timezone)
 simplified posts:create -c "Launching soon!" -a "ACCOUNT_ID" --action schedule \
-  --date "2026-04-01 09:00"  # format: YYYY-MM-DD HH:MM, timezone: UTC (override with --timezone)
+  --date "2026-04-01 09:00"  # format: YYYY-MM-DD HH:MM
+
+# Schedule for 9:00 AM Pacific, whatever the workspace timezone is
+simplified posts:create -c "Launching soon!" -a "ACCOUNT_ID" --action schedule \
+  --date "2026-04-01 09:00" --timezone "America/Los_Angeles"
 
 # Save as draft
 simplified posts:create -c "Work in progress" -a "ACCOUNT_ID" --action draft
@@ -181,6 +185,8 @@ simplified posts:create --json post.json
 ```
 
 **Actions:** `add_to_queue` · `schedule` (requires `--date "YYYY-MM-DD HH:MM"`) · `draft`
+
+**Timezones:** `--date` is a wall-clock time. Use `--timezone <IANA>` to say which zone it is in. The default is the workspace timezone, and the CLI never converts the date to UTC. Post dates come back in **UTC** unless you pass `--tz` to `posts:list`. For example, 09:00 `America/Los_Angeles` reads back as 17:00 UTC (16:00 UTC during daylight saving time).
 
 **Platform-specific settings (`--additional`):** Pass a JSON string for per-platform options (Instagram `postType`/`channel`, TikTok `privacyStatus`, YouTube `post.title`, etc.). See [`skills/simplified-cli/references/PLATFORM_GUIDE.md`](skills/simplified-cli/references/PLATFORM_GUIDE.md) for all options.
 
@@ -216,6 +222,10 @@ simplified posts:list-drafts --accounts "ACCOUNT_ID"
 
 # Update a draft
 simplified posts:update-draft --draft-id "DRAFT_ID" -c "Polished copy"
+
+# Schedule a draft at an exact local time (no placeholder time needed)
+simplified posts:update-draft --draft-id "DRAFT_ID" --date "2026-11-12" --time "09:00" --timezone "America/Los_Angeles"
+simplified posts:schedule-draft --draft-ids "DRAFT_ID" --action schedule --tz "America/Los_Angeles"
 
 # Delete drafts
 simplified posts:delete-draft --draft-ids "DRAFT_ID_1,DRAFT_ID_2"
