@@ -4,6 +4,7 @@ import {
   withTimezone,
   assertDraftScheduleFields,
   summarizeScheduleDraft,
+  checkUpdateResult,
   buildComments,
   parseMediaJson,
   resolveMedia,
@@ -245,5 +246,36 @@ describe('summarizeScheduleDraft', () => {
   it('is not ok for an empty or missing body', () => {
     expect(summarizeScheduleDraft(undefined).ok).toBe(false);
     expect(summarizeScheduleDraft({}).ok).toBe(false);
+  });
+});
+
+describe('checkUpdateResult', () => {
+  it('is ok for a successful update (status 1)', () => {
+    expect(
+      checkUpdateResult({ status: 1, results: [{ status: 1, message: 'Post has been updated successfully' }] })
+    ).toEqual({ ok: true, errors: [] });
+  });
+
+  it('fails on status 3 and returns the API message', () => {
+    expect(
+      checkUpdateResult({
+        status: 3,
+        results: [{ status: 3, message: "Draft not updated: User 1 don't have role for organization 2" }],
+      })
+    ).toEqual({ ok: false, errors: ["Draft not updated: User 1 don't have role for organization 2"] });
+  });
+
+  it('fails when one item failed even if the top level says ok', () => {
+    const r = checkUpdateResult({ status: 1, results: [{ status: 1 }, { status: 3, message: 'nope' }] });
+    expect(r).toEqual({ ok: false, errors: ['nope'] });
+  });
+
+  it('fails on a top-level error status without results', () => {
+    expect(checkUpdateResult({ status: 3 })).toEqual({ ok: false, errors: ['status 3'] });
+  });
+
+  it('treats a body without a numeric status as success (backwards compatible)', () => {
+    expect(checkUpdateResult({ id: 'x' }).ok).toBe(true);
+    expect(checkUpdateResult(undefined).ok).toBe(true);
   });
 });

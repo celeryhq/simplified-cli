@@ -67,9 +67,9 @@ simplified posts:create -c "Hello" -a "123" --action schedule \
   --date "2026-11-12 09:00" --timezone "America/Los_Angeles"
 ```
 
-Post dates read back in **UTC** unless you ask for a display zone with `posts:list --tz`, so
-09:00 `America/Los_Angeles` shows as 17:00 UTC (16:00 UTC during daylight saving time). That is
-expected and not a bug.
+**Read-back:** `posts:list` returns each post's `date` and `time` together with its `timezone`,
+as scheduled. The post above comes back as `"date": "2026-11-12", "time": "09:00",
+"timezone": "America/Los_Angeles"`, so compare those fields directly and don't convert anything.
 
 ### Grouped multi-platform post (`--group`)
 
@@ -316,7 +316,8 @@ simplified posts:update --post-id "ps_abc123" --media ""
 
 Update a draft. `--draft-id` is required; same optional fields as `posts:update`.
 `--date`, `--time` and `--timezone` must be given **together**. The CLI rejects a partial set.
-The API stores the time in UTC.
+If the API rejects the update (HTTP 200 with `status` other than `1`), the CLI prints the message and
+exits 1, so check the exit code before running `posts:schedule-draft`.
 
 ```bash
 simplified posts:update-draft --draft-id "d_abc123" -c "Revised copy"
@@ -361,8 +362,8 @@ simplified posts:create -a "123" --action draft -c "..."
 simplified posts:update-draft --draft-id "456" --date "2026-11-12" --time "09:00" --timezone "America/Los_Angeles"
 # 3) schedule it in the same zone
 simplified posts:schedule-draft --draft-ids "456" --action schedule --tz "America/Los_Angeles"
-# 4) read back in the same zone (without --tz the date shows in UTC: 17:00, or 16:00 during DST)
-simplified posts:list --accounts "123" --category scheduled --tz "America/Los_Angeles"
+# 4) read back: the post shows "time": "09:00" with "timezone": "America/Los_Angeles"
+simplified posts:list --accounts "123" --category scheduled
 ```
 
 ---

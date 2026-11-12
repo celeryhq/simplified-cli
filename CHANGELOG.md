@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.1] — 2026-11-12
+
+### Fixed
+
+- **Docs: read-back timezone.** The 1.9.0 docs said post dates read back in UTC (09:00 PT shown as
+  17:00 UTC). That was wrong: `posts:list` returns `date` and `time` with the post's own `timezone`,
+  as scheduled (`09:00` + `America/Los_Angeles`). Fixed in README, SKILL.md and SOCIAL_MEDIA.md.
+- **`posts:update` and `posts:update-draft` no longer report success when nothing was updated.**
+  The update APIs answer HTTP 200 with `status: 3` and a message (e.g. `Draft not updated: ...`)
+  when an update is rejected. The CLI printed "✅ updated" and exited 0. It now prints each message
+  and exits 1 for any status other than `1`.
+
 ## [1.9.0] — 2026-11-11
 
 ### Added
